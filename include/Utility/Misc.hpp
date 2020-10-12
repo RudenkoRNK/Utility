@@ -21,7 +21,7 @@ inline void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
 
 template <class T, class Indexer, class IndexFunction>
 inline void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
-                    IndexFunction &Index) {
+                    IndexFunction &&Index) {
 #ifndef NDEBUG
   assert(std::unique(perm.begin(), perm.end(),
                      [&](Indexer const &lhs, Indexer const &rhs) {

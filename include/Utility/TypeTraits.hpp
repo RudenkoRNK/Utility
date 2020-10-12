@@ -67,18 +67,18 @@ private:
   using Types = typename ArgTypes_::Types;
 
 public:
-  auto constexpr static nArguments = std::tuple_size_v<Types> - 1;
+  size_t constexpr static nArguments = std::tuple_size_v<Types> - 1;
   template <size_t n> using Type = std::tuple_element_t<n, Types>;
   template <size_t n>
-  auto constexpr static isLValueReference = std::is_lvalue_reference_v<Type<n>>;
+  bool constexpr static isLValueReference = std::is_lvalue_reference_v<Type<n>>;
   template <size_t n>
-  auto constexpr static isRValueReference = std::is_rvalue_reference_v<Type<n>>;
+  bool constexpr static isRValueReference = std::is_rvalue_reference_v<Type<n>>;
   template <size_t n>
-  auto constexpr static isReference = std::is_reference_v<Type<n>>;
-  template <size_t n> auto constexpr static isValue = !isReference<n>;
+  bool constexpr static isReference = std::is_reference_v<Type<n>>;
+  template <size_t n> bool constexpr static isValue = !isReference<n>;
   template <size_t n>
-  auto constexpr static isConst =
+  bool constexpr static isConst =
       std::is_const_v<std::remove_reference_t<Type<n>>>;
-  auto constexpr static isCallableConst = ArgTypes_::isCallableConst;
+  bool constexpr static isCallableConst = ArgTypes_::isCallableConst;
 };
 } // namespace Utility
