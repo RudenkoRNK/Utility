@@ -67,4 +67,23 @@ inline std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
   return end - start;
 }
 
+template <typename T> class SaveRestore final {
+  static_assert(noexcept(T(std::declval<T>())));
+  T originalValue;
+  T &restoreTo;
+
+public:
+  SaveRestore(T &value) : restoreTo(value), originalValue(value) {}
+
+  SaveRestore(T &&value, T &restoreTo)
+      : restoreTo(restoreTo), originalValue(std::move(value)) {}
+
+  SaveRestore(SaveRestore const &) = delete;
+  SaveRestore(SaveRestore &&) = delete;
+  SaveRestore &operator=(SaveRestore const &) = delete;
+  SaveRestore &operator=(SaveRestore &&) = delete;
+
+  ~SaveRestore() { restoreTo = std::move(originalValue); }
+};
+
 } // namespace Utility

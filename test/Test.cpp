@@ -70,3 +70,34 @@ BOOST_AUTO_TEST_CASE(utility_test) {
   BOOST_TEST(abs(Utility::RMS(v) - sqrt((N - 1) * (2 * N - 1) / 6)) < 0.0001);
   BOOST_TEST(abs(Utility::Variance(v) - (N * N - 1) / 12) < 0.000001);
 }
+
+BOOST_AUTO_TEST_CASE(save_restore) {
+  auto perm = std::vector<size_t>{5, 2, 3, 0, 1, 4};
+  auto checkperm = std::vector<size_t>{5, 2, 3, 0, 1, 4};
+  {
+    auto save = Utility::SaveRestore(perm);
+    perm = std::vector<size_t>{};
+  }
+  BOOST_TEST(checkperm == perm);
+
+  {
+    auto save = Utility::SaveRestore(std::move(perm), perm);
+    perm = std::vector<size_t>{};
+  }
+  BOOST_TEST(checkperm == perm);
+
+  {
+    auto save =
+        Utility::SaveRestore(std::vector<size_t>{5, 2, 3, 0, 1, 4}, perm);
+    perm = std::vector<size_t>{};
+  }
+  BOOST_TEST(checkperm == perm);
+
+  auto i = 123456;
+  auto checki = i;
+  {
+    auto save = Utility::SaveRestore(i);
+    i = 100;
+  }
+  BOOST_TEST(checki = i);
+}
