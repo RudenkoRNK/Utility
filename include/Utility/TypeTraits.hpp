@@ -8,51 +8,53 @@ namespace Utility {
 
 class TypeTraits final {
 private:
-  template <typename T, template <typename...> class Template>
+  template <typename T, template <typename...> typename Template>
   struct isInstanceOf_ : std::false_type {};
-  template <template <typename...> class Template, typename... Args>
+  template <template <typename...> typename Template, typename... Args>
   struct isInstanceOf_<Template<Args...>, Template> : std::true_type {};
 
 public:
-  template <class Instance, template <typename...> class Template>
+  template <typename Instance, template <typename...> typename Template>
   auto constexpr static isInstanceOf =
       isInstanceOf_<std::remove_reference_t<Instance>, Template>::value;
 };
 
-template <class Callable> struct ArgumentTraits final {
+template <typename Callable> struct ArgumentTraits final {
 private:
   enum class CallableType { Function, Method, Lambda };
 
-  template <class Callable_> struct FunctionArgTypes;
-  template <class Callable_, class... Args>
+  template <typename Callable_> struct FunctionArgTypes;
+  template <typename Callable_, typename... Args>
   struct FunctionArgTypes<Callable_(Args...)> {
     using Types = typename std::tuple<Callable_, Args...>;
   };
-  template <class CallableAddress> struct LambdaOrMethodArgTypes;
-  template <class CallableAddress, class Result, class... Args>
+  template <typename CallableAddress> struct LambdaOrMethodArgTypes;
+  template <typename CallableAddress, typename Result, typename... Args>
   struct LambdaOrMethodArgTypes<Result (CallableAddress::*)(Args...) const> {
     using Types = typename std::tuple<Result, Args...>;
     auto constexpr static isCallableConst = true;
   };
-  template <class CallableAddress, class Result, class... Args>
+  template <typename CallableAddress, typename Result, typename... Args>
   struct LambdaOrMethodArgTypes<Result (CallableAddress::*)(Args...)> {
     using Types = typename std::tuple<Result, Args...>;
     auto constexpr static isCallableConst = false;
   };
 
-  template <class Callable_, CallableType> struct ArgTypes;
-  template <class Callable_>
+  template <typename Callable_, CallableType> struct ArgTypes;
+  template <typename Callable_>
   struct ArgTypes<Callable_, CallableType::Function> {
     using Types = typename FunctionArgTypes<Callable_>::Types;
     auto constexpr static isCallableConst = false;
   };
-  template <class Callable_> struct ArgTypes<Callable_, CallableType::Lambda> {
+  template <typename Callable_>
+  struct ArgTypes<Callable_, CallableType::Lambda> {
     using Types = typename LambdaOrMethodArgTypes<decltype(
         &Callable_::operator())>::Types;
     auto constexpr static isCallableConst = LambdaOrMethodArgTypes<decltype(
         &Callable_::operator())>::isCallableConst;
   };
-  template <class Callable_> struct ArgTypes<Callable_, CallableType::Method> {
+  template <typename Callable_>
+  struct ArgTypes<Callable_, CallableType::Method> {
     using Types = typename LambdaOrMethodArgTypes<Callable_>::Types;
     auto constexpr static isCallableConst =
         LambdaOrMethodArgTypes<Callable_>::isCallableConst;

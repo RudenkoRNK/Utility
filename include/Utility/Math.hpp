@@ -18,12 +18,12 @@ struct LinearFit {
   double SigmaSlope;
 };
 
-template <class Number> double Mean(std::vector<Number> const &v) {
+template <typename Number> double Mean(std::vector<Number> const &v) {
   auto sum = std::accumulate(v.begin(), v.end(), 0.0);
   return sum / v.size();
 }
 
-template <class Number> double Variance(std::vector<Number> const &v) {
+template <typename Number> double Variance(std::vector<Number> const &v) {
   auto mean = Mean(v);
   auto sum = std::accumulate(v.begin(), v.end(), 0.0, [mean](auto x, auto y) {
     return x + (y - mean) * (y - mean);
@@ -32,12 +32,12 @@ template <class Number> double Variance(std::vector<Number> const &v) {
 }
 
 // Root mean square
-template <class Number> double RMS(std::vector<Number> const &v) {
+template <typename Number> double RMS(std::vector<Number> const &v) {
   auto sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
   return sqrt(sum / v.size());
 }
 
-template <class NumberX, class NumberY>
+template <typename NumberX, typename NumberY>
 LinearFit LeastSquares(std::vector<NumberX> const &x,
                        std::vector<NumberY> const &y) {
   assert(x.size() == y.size());
@@ -61,7 +61,8 @@ LinearFit LeastSquares(std::vector<NumberX> const &x,
           .SigmaSlope = SigmaSlope};
 }
 
-template <class Number> LinearFit LeastSquares(std::vector<Number> const &y) {
+template <typename Number>
+LinearFit LeastSquares(std::vector<Number> const &y) {
   auto x = std::vector<double>(y.size());
   std::iota(x.begin(), x.end(), 0.0);
   return LeastSquares(x, y);

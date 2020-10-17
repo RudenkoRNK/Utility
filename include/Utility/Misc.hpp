@@ -16,12 +16,12 @@ inline std::vector<size_t> GetIndices(size_t size) {
   return indices;
 }
 
-template <class T>
+template <typename T>
 inline void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
   Permute(v, perm, std::identity{});
 }
 
-template <class T, class Indexer, class IndexFunction>
+template <typename T, typename Indexer, typename IndexFunction>
 inline void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                     IndexFunction &&Index) {
 #ifndef NDEBUG
@@ -59,7 +59,7 @@ inline void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   }
 }
 
-template <class FG, class... Args>
+template <typename FG, typename... Args>
 inline std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
   auto start = std::chrono::steady_clock::now();
   Func(std::forward<Args>(args)...);
