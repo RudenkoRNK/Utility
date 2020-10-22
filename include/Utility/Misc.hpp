@@ -10,19 +10,19 @@
 
 namespace Utility {
 
-inline std::vector<size_t> GetIndices(size_t size) {
+static std::vector<size_t> GetIndices(size_t size) {
   auto indices = std::vector<size_t>(size);
   std::iota(indices.begin(), indices.end(), size_t{0});
   return indices;
 }
 
 template <typename T>
-inline void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
+static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
   Permute(v, perm, std::identity{});
 }
 
 template <typename T, typename Indexer, typename IndexFunction>
-inline void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
+static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                     IndexFunction &&Index) {
 #ifndef NDEBUG
   assert(std::unique(perm.begin(), perm.end(),
@@ -60,7 +60,7 @@ inline void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
 }
 
 template <typename FG, typename... Args>
-inline std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
+static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
   auto start = std::chrono::steady_clock::now();
   Func(std::forward<Args>(args)...);
   auto end = std::chrono::steady_clock::now();
