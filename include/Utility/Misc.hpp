@@ -29,32 +29,33 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                      [&](Indexer const &lhs, Indexer const &rhs) {
                        return Index(lhs) == Index(rhs);
                      }) == perm.end());
-  assert(*std::min_element(perm.begin(), perm.end(),
-                           [&](Indexer const &lhs, Indexer const &rhs) {
-                             return lhs < rhs;
-                           }) == 0);
-  assert(*std::max_element(perm.begin(), perm.end(),
-                           [&](Indexer const &lhs, Indexer const &rhs) {
-                             return lhs < rhs;
-                           }) == perm.size() - 1);
+  assert(Index(*std::min_element(perm.begin(), perm.end(),
+                                 [&](Indexer const &lhs, Indexer const &rhs) {
+                                   return lhs < rhs;
+                                 })) == 0);
+  assert(Index(*std::max_element(perm.begin(), perm.end(),
+                                 [&](Indexer const &lhs, Indexer const &rhs) {
+                                   return lhs < rhs;
+                                 })) == perm.size() - 1);
   if constexpr (std::is_same_v<T, Indexer>) {
     assert(&v != &perm);
   }
+  assert(v.size() == perm.size());
 #endif // !NDEBUG
 
   auto &&control = std::vector<size_t>(v.size());
   std::iota(control.begin(), control.end(), size_t{0});
   for (auto i = size_t{0}, e = v.size(); i < e; ++i) {
-    while (Index(perm.at(i)) != i) {
-      std::swap(control.at(i), control.at(Index(perm.at(i))));
-      std::swap(perm.at(i), perm.at(Index(perm.at(i))));
+    while (Index(perm[i]) != i) {
+      std::swap(control[i], control[Index(perm[i])]);
+      std::swap(perm[i], perm[Index(perm[i])]);
     }
   }
   for (auto i = size_t{0}, e = v.size(); i < e; ++i) {
-    while (control.at(i) != i) {
-      std::swap(v.at(i), v.at(control.at(i)));
-      std::swap(perm.at(i), perm.at(control.at(i)));
-      std::swap(control.at(i), control.at(control.at(i)));
+    while (control[i] != i) {
+      std::swap(v[i], v[control[i]]);
+      std::swap(perm[i], perm[control[i]]);
+      std::swap(control[i], control[control[i]]);
     }
   }
 }
