@@ -131,3 +131,26 @@ BOOST_AUTO_TEST_CASE(unordered_hash_test) {
   BOOST_TEST(Utility::UnorderedHash(x) == Utility::UnorderedHash(y));
   BOOST_TEST(Utility::UnorderedHash(x) != Utility::UnorderedHash(z));
 }
+
+BOOST_AUTO_TEST_CASE(enumerate_test) {
+  auto a = std::unordered_set<int>{4, 3, 2, 1};
+  auto b = std::vector<int>{4, 3, 2, 1};
+  auto am = Utility::Enumerate(a);
+  auto bm = Utility::Enumerate(b);
+  auto acheck = std::unordered_set<size_t>{};
+  auto bcheck = std::unordered_set<size_t>{};
+  for (auto const &[e, i] : am)
+    acheck.insert(i);
+  for (auto const &[e, i] : bm)
+    bcheck.insert(i);
+
+  BOOST_TEST(acheck.size() == a.size());
+  BOOST_TEST(bcheck.size() == b.size());
+
+  BOOST_TEST(*std::min_element(acheck.begin(), acheck.end()) == 0);
+  BOOST_TEST(*std::max_element(acheck.begin(), acheck.end()) ==
+             acheck.size() - 1);
+  BOOST_TEST(*std::min_element(bcheck.begin(), bcheck.end()) == 0);
+  BOOST_TEST(*std::max_element(bcheck.begin(), bcheck.end()) ==
+             bcheck.size() - 1);
+}

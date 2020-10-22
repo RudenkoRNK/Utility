@@ -6,6 +6,7 @@
 #include <cassert>
 #include <chrono>
 #include <numeric>
+#include <unordered_map>
 #include <vector>
 
 namespace Utility {
@@ -94,4 +95,18 @@ static size_t UnorderedHash(Container const &container) {
       container.begin(), container.end(), size_t{1},
       [&](size_t cur_val, auto const &elem) { return cur_val * hash(elem); });
 }
+
+template <typename Container>
+static auto Enumerate(Container const &container) {
+  using ElementType = typename Container::value_type;
+  auto map = std::unordered_map<ElementType, size_t>{};
+  auto lastIndex = size_t{0};
+  for (auto const &e : container) {
+    if (map.contains(e))
+      continue;
+    map.emplace(e, lastIndex++);
+  }
+  return map;
+}
+
 } // namespace Utility
