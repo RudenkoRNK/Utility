@@ -6,6 +6,8 @@
 #include <boost/test/included/unit_test.hpp>
 #include <functional>
 #include <random>
+#include <unordered_map>
+#include <unordered_set>
 
 BOOST_AUTO_TEST_CASE(arg_traits_test) {
   auto lambda1 = [](std::string const &) { return 0; };
@@ -100,4 +102,32 @@ BOOST_AUTO_TEST_CASE(save_restore) {
     i = 100;
   }
   BOOST_TEST(checki = i);
+}
+
+namespace std {
+template <> struct hash<std::pair<const int, double>> {
+  size_t operator()(std::pair<const int, double> const &x) const noexcept {
+    return std::hash<int>{}(x.first) * std::hash<double>{}(x.second);
+  }
+};
+} // namespace std
+
+BOOST_AUTO_TEST_CASE(unordered_hash_test) {
+  auto a = std::unordered_set<int>{};
+  auto b = a;
+  auto c = a;
+  auto x = std::unordered_map<int, double>{};
+  auto y = x;
+  auto z = y;
+  a.insert({0, 1, 2, 3, 4, 5});
+  b.insert({3, 2, 0, 4, 5, 1});
+  c.insert({1, 2, 3, 4, 5});
+
+  x.insert({{0, 0.0}, {1, 1.0}, {2, 2.0}, {3, 3.0}});
+  y.insert({{1, 1.0}, {0, 0.0}, {3, 3.0}, {2, 2.0}});
+  z.insert({{0, 0.0}, {1, 1.0}, {2, 3.0}, {3, 3.0}});
+  BOOST_TEST(Utility::UnorderedHash(a) == Utility::UnorderedHash(b));
+  BOOST_TEST(Utility::UnorderedHash(a) != Utility::UnorderedHash(c));
+  BOOST_TEST(Utility::UnorderedHash(x) == Utility::UnorderedHash(y));
+  BOOST_TEST(Utility::UnorderedHash(x) != Utility::UnorderedHash(z));
 }

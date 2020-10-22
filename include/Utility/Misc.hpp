@@ -86,4 +86,11 @@ public:
   ~SaveRestore() { restoreTo = std::move(originalValue); }
 };
 
+template <typename Container>
+static size_t UnorderedHash(Container const &container) {
+  auto hash = std::hash<Container::value_type>{};
+  return std::accumulate(
+      container.begin(), container.end(), size_t{1},
+      [&](size_t cur_val, auto const &elem) { return cur_val * hash(elem); });
+}
 } // namespace Utility
