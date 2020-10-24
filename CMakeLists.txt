@@ -19,5 +19,5 @@ file(GLOB UtilitySources
 
 option(UTILITY_TEST "Build Evolution tests" OFF)
 if (UTILITY_TEST)
-  add_subdirectory(test)
+  add_subdirectory(UtilityTest)
 endif ()
