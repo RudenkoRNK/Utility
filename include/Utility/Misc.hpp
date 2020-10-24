@@ -109,4 +109,18 @@ static auto Enumerate(Container const &container) {
   return map;
 }
 
+template <typename T> class IdWrapper final {
+  template <class U> auto static nextId = std::atomic_size_t{0};
+
+  T value;
+  size_t id;
+
+public:
+  IdWrapper(T &&value) : value(std::move(value)), id(nextId<T> ++) {}
+
+  size_t GetId() const { return id; }
+  constexpr T const &Get() const noexcept { return value; }
+  constexpr operator T const &() const noexcept { return value; }
+};
+
 } // namespace Utility

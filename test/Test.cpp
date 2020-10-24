@@ -154,3 +154,39 @@ BOOST_AUTO_TEST_CASE(enumerate_test) {
   BOOST_TEST(*std::max_element(bcheck.begin(), bcheck.end()) ==
              bcheck.size() - 1);
 }
+struct AAA {
+  int x;
+  int y;
+  AAA() = delete;
+  AAA(int x, int y) : x(x), y(y){};
+};
+static bool operator==(AAA const &lhs, AAA const &rhs) {
+  return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
+BOOST_AUTO_TEST_CASE(id_wrapper_test) {
+  using IdInt = Utility::IdWrapper<int>;
+  auto x1 = IdInt(3);
+  auto x2 = IdInt(3);
+  auto x3 = IdInt(4);
+  auto y1 = Utility::IdWrapper<AAA>({1, 2});
+  auto y2 = Utility::IdWrapper<AAA>({1, 2});
+  auto y3 = Utility::IdWrapper<AAA>({1, 3});
+
+  BOOST_TEST(x1.GetId() == 0);
+  BOOST_TEST(x2.GetId() == 1);
+  BOOST_TEST(x3.GetId() == 2);
+  BOOST_TEST(y1.GetId() == 0);
+  BOOST_TEST(y2.GetId() == 1);
+  BOOST_TEST(y3.GetId() == 2);
+  BOOST_TEST(x2 == 3);
+  BOOST_TEST(x3 == 4);
+  assert(y2 == AAA(1, 2));
+  assert(y3 == AAA(1, 3));
+
+  auto xv = std::vector<IdInt>{x1};
+  auto x4 = x1;
+
+  BOOST_TEST(x1.GetId() == xv[0].GetId());
+  BOOST_TEST(x4.GetId() == x1.GetId());
+}
