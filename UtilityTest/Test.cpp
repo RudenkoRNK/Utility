@@ -166,10 +166,10 @@ static bool operator==(AAA const &lhs, AAA const &rhs) {
 
 BOOST_AUTO_TEST_CASE(id_wrapper_test) {
   using IdInt = Utility::IdWrapper<int>;
-  auto x1 = IdInt(3);
+  auto x1 = IdInt(1);
   auto x2 = IdInt(3);
   auto x3 = IdInt(4);
-  auto y1 = Utility::IdWrapper<AAA>({1, 2});
+  auto y1 = Utility::IdWrapper<AAA>({1, 1});
   auto y2 = Utility::IdWrapper<AAA>({1, 2});
   auto y3 = Utility::IdWrapper<AAA>({1, 3});
 

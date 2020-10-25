@@ -111,16 +111,32 @@ static auto Enumerate(Container const &container) {
 
 template <typename T> class IdWrapper final {
   template <class U> auto static nextId = std::atomic_size_t{0};
-
   T value;
   size_t id;
 
 public:
   IdWrapper(T &&value) : value(std::move(value)), id(nextId<T> ++) {}
 
-  size_t GetId() const { return id; }
+  size_t GetId() const noexcept { return id; }
   constexpr T const &Get() const noexcept { return value; }
   constexpr operator T const &() const noexcept { return value; }
 };
-
+template <class T>
+static bool operator==(IdWrapper<T> const &lhs,
+                       IdWrapper<T> const &rhs) noexcept {
+  auto ieq = lhs.GetId() == rhs.GetId();
+  assert((lhs.Get() == rhs.Get()) == ieq);
+  return ieq;
+}
+template <class T> static size_t hash_value(IdWrapper<T> const &val) noexcept {
+  return val.GetId();
+}
 } // namespace Utility
+
+namespace std {
+template <class T> struct hash<Utility::IdWrapper<T>> {
+  size_t operator()(Utility::IdWrapper<T> const &val) const noexcept {
+    return Utility::hash_value(val);
+  }
+};
+} // namespace std
