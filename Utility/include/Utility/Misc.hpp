@@ -46,13 +46,13 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
 
   auto &&control = std::vector<size_t>(v.size());
   std::iota(control.begin(), control.end(), size_t{0});
-  for (auto i = size_t{0}, e = v.size(); i < e; ++i) {
+  for (auto i = size_t{0}, e = v.size(); i != e; ++i) {
     while (Index(perm[i]) != i) {
       std::swap(control[i], control[Index(perm[i])]);
       std::swap(perm[i], perm[Index(perm[i])]);
     }
   }
-  for (auto i = size_t{0}, e = v.size(); i < e; ++i) {
+  for (auto i = size_t{0}, e = v.size(); i != e; ++i) {
     while (control[i] != i) {
       std::swap(v[i], v[control[i]]);
       std::swap(perm[i], perm[control[i]]);
