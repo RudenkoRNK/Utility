@@ -8,17 +8,18 @@
 #include <random>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 BOOST_AUTO_TEST_CASE(arg_traits_test) {
   auto lambda1 = [](std::string const &) { return 0; };
-  using T = Utility::ArgumentTraits<decltype(lambda1)>::Type<1>;
+  using T = Utility::CallableTraits<decltype(lambda1)>::Type<1>;
   // NOLINTNEXTLINE
   auto lambda2 = [&](T t) { return lambda1(t); };
 
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda1)>::isConst<1>);
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda1)>::isLValueReference<1>);
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda2)>::isConst<1>);
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda2)>::isLValueReference<1>);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda1)>::isConst<1>);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda1)>::isLValueReference<1>);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isConst<1>);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isLValueReference<1>);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
@@ -44,10 +45,47 @@ BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
     return 0;
   };
 
-  BOOST_TEST(!Utility::ArgumentTraits<decltype(lambda1)>::isCallableConst);
-  BOOST_TEST(!Utility::ArgumentTraits<decltype(lambda2)>::isCallableConst);
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda3)>::isCallableConst);
-  BOOST_TEST(Utility::ArgumentTraits<decltype(lambda4)>::isCallableConst);
+  struct AAA {
+    void X() const {};
+    void Y(){};
+  };
+
+  auto func1 = std::function(lambda1);
+  auto func2 = std::function(lambda2);
+  auto func3 = std::function(lambda3);
+  auto func4 = std::function(lambda4);
+
+  BOOST_TEST(!Utility::CallableTraits<decltype(lambda1)>::isCallableConst);
+  BOOST_TEST(!Utility::CallableTraits<decltype(lambda2)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda3)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(lambda4)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(func1)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(func2)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(func3)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(func4)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(&AAA::X)>::isCallableConst);
+  BOOST_TEST(!Utility::CallableTraits<decltype(&AAA::Y)>::isCallableConst);
+}
+
+BOOST_AUTO_TEST_CASE(arg_traits_test_3) {
+  auto lambda1 = [](std::string const &, int, double, int, char) -> int {
+    return 0;
+  };
+  using U1 = typename Utility::CallableTraits<decltype(lambda1)>::std_function;
+  using T1 = std::function<int(std::string const &, int, double, int, char)>;
+  auto lambda2 = [](int, double) {};
+  using T2 = std::function<void(int, double)>;
+  using U2 = typename Utility::CallableTraits<decltype(lambda2)>::std_function;
+  BOOST_TEST((std::is_same_v<U1, T1>));
+  BOOST_TEST((std::is_same_v<U2, T2>));
+}
+
+BOOST_AUTO_TEST_CASE(type_traits_test) {
+  BOOST_TEST(
+      (Utility::TypeTraits::isInstanceOf<std::vector, std::vector<int>>));
+  BOOST_TEST((!Utility::TypeTraits::isInstanceOf<std::vector,
+                                                 std::unordered_set<int>>));
+  BOOST_TEST((!Utility::TypeTraits::isInstanceOf<std::vector, int>));
 }
 
 BOOST_AUTO_TEST_CASE(perm_test) {
