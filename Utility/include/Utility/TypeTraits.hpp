@@ -45,7 +45,7 @@ private:
   template <typename Callable_>
   struct ArgTypes_<Callable_, CallableType::Function> {
     using Types = typename FunctionArgTypes<Callable_>::Types;
-    auto constexpr static isCallableConst = false;
+    auto constexpr static isCallableConst = true;
   };
   template <typename Callable_>
   struct ArgTypes_<Callable_, CallableType::Lambda> {
@@ -94,7 +94,8 @@ public:
   bool constexpr static isRValueReference = std::is_rvalue_reference_v<Type<n>>;
   template <size_t n>
   bool constexpr static isReference = std::is_reference_v<Type<n>>;
-  template <size_t n> bool constexpr static isValue = !isReference<n>;
+  template <size_t n>
+  bool constexpr static isValue = !isReference<n> && !std::is_void_v<Type<n>>;
   template <size_t n>
   bool constexpr static isConst =
       std::is_const_v<std::remove_reference_t<Type<n>>>;

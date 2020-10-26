@@ -10,6 +10,9 @@
 #include <unordered_set>
 #include <utility>
 
+int foo(int x) { return x; };
+void bar(int x){};
+
 BOOST_AUTO_TEST_CASE(arg_traits_test) {
   auto lambda1 = [](std::string const &) { return 0; };
   using T = Utility::CallableTraits<decltype(lambda1)>::Type<1>;
@@ -20,6 +23,9 @@ BOOST_AUTO_TEST_CASE(arg_traits_test) {
   BOOST_TEST(Utility::CallableTraits<decltype(lambda1)>::isLValueReference<1>);
   BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isConst<1>);
   BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isLValueReference<1>);
+  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isValue<0>);
+  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isValue<1>);
+  BOOST_TEST(!Utility::CallableTraits<decltype(bar)>::isValue<0>);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
@@ -65,6 +71,7 @@ BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
   BOOST_TEST(Utility::CallableTraits<decltype(func4)>::isCallableConst);
   BOOST_TEST(Utility::CallableTraits<decltype(&AAA::X)>::isCallableConst);
   BOOST_TEST(!Utility::CallableTraits<decltype(&AAA::Y)>::isCallableConst);
+  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isCallableConst);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_3) {
