@@ -28,6 +28,9 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   static_assert(noexcept(Index(perm[0])));
   static_assert(noexcept(std::swap(perm[0], perm[1])));
   static_assert(noexcept(std::swap(v[0], v[1])));
+  assert(v.size() == perm.size());
+  if (v.size() == 0)
+    return;
 #ifndef NDEBUG
   assert(std::unique(perm.begin(), perm.end(),
                      [&](Indexer const &lhs, Indexer const &rhs) {
@@ -44,7 +47,6 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   if constexpr (std::is_same_v<T, Indexer>) {
     assert(&v != &perm);
   }
-  assert(v.size() == perm.size());
 #endif // !NDEBUG
 
   auto &&control = std::vector<size_t>(v.size());
