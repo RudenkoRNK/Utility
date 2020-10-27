@@ -97,10 +97,12 @@ BOOST_AUTO_TEST_CASE(type_traits_test) {
 
 BOOST_AUTO_TEST_CASE(perm_test) {
   auto perm = std::vector<size_t>{5, 2, 3, 0, 1, 4};
+  auto perm2 = std::vector<size_t>{5, 2, 3, 0, 1, 4};
   auto v = std::vector<size_t>(perm.size());
   std::iota(v.begin(), v.end(), 0);
   Utility::Permute(v, perm);
   BOOST_TEST(v == perm);
+  BOOST_TEST(v == perm2);
 }
 
 BOOST_AUTO_TEST_CASE(utility_test) {

@@ -25,6 +25,9 @@ static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
 template <typename T, typename Indexer, typename IndexFunction>
 static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                     IndexFunction &&Index) {
+  static_assert(noexcept(Index(perm[0])));
+  static_assert(noexcept(std::swap(perm[0], perm[1])));
+  static_assert(noexcept(std::swap(v[0], v[1])));
 #ifndef NDEBUG
   assert(std::unique(perm.begin(), perm.end(),
                      [&](Indexer const &lhs, Indexer const &rhs) {

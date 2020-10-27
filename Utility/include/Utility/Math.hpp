@@ -19,22 +19,24 @@ struct LinearFit {
 };
 
 template <typename Number> double Mean(std::vector<Number> const &v) {
-  auto sum = std::accumulate(v.begin(), v.end(), 0.0);
-  return sum / v.size();
+  auto sum = std::accumulate(v.begin(), v.end(), Number(0));
+  return static_cast<double>(sum) / v.size();
 }
 
 template <typename Number> double Variance(std::vector<Number> const &v) {
   auto mean = Mean(v);
-  auto sum = std::accumulate(v.begin(), v.end(), 0.0, [mean](auto x, auto y) {
-    return x + (y - mean) * (y - mean);
-  });
+  auto sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0, std::plus{},
+                                [mean](auto x, auto y) {
+                                  return (static_cast<double>(x) - mean) *
+                                         (static_cast<double>(y) - mean);
+                                });
   return sum / v.size();
 }
 
 // Root mean square
 template <typename Number> double RMS(std::vector<Number> const &v) {
-  auto sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-  return sqrt(sum / v.size());
+  auto sum = std::inner_product(v.begin(), v.end(), v.begin(), Number(0));
+  return sqrt(static_cast<double>(sum) / v.size());
 }
 
 template <typename NumberX, typename NumberY>
