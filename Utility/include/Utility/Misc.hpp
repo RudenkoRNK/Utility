@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <exception>
 #include <numeric>
 #include <unordered_map>
 #include <vector>
@@ -90,6 +91,24 @@ public:
   SaveRestore &operator=(SaveRestore &&) = delete;
 
   ~SaveRestore() { restoreTo = std::move(originalValue); }
+};
+
+template <typename T> class ExceptionGuard final {
+  static_assert(noexcept(std::declval<T>().Clear()));
+  T &value;
+
+public:
+  ExceptionGuard(T &value) noexcept : value(value) {}
+
+  ExceptionGuard(ExceptionGuard const &) = delete;
+  ExceptionGuard(ExceptionGuard &&) = delete;
+  ExceptionGuard &operator=(ExceptionGuard const &) = delete;
+  ExceptionGuard &operator=(ExceptionGuard &&) = delete;
+
+  ~ExceptionGuard() {
+    if (std::uncaught_exceptions())
+      value.Clear();
+  }
 };
 
 template <typename Container>
