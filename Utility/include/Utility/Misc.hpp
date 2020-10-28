@@ -76,13 +76,12 @@ static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
 
 template <typename T> class SaveRestore final {
   static_assert(noexcept(T(std::declval<T>())));
-  T originalValue;
   T &restoreTo;
+  T originalValue;
 
 public:
   SaveRestore(T &value) : restoreTo(value), originalValue(value) {}
-
-  SaveRestore(T &&value, T &restoreTo)
+  SaveRestore(T &&value, T &restoreTo) noexcept
       : restoreTo(restoreTo), originalValue(std::move(value)) {}
 
   SaveRestore(SaveRestore const &) = delete;
