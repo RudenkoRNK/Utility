@@ -114,7 +114,7 @@ public:
 
 template <typename Container>
 static size_t UnorderedHash(Container const &container) {
-  auto hash = std::hash<Container::value_type>{};
+  auto hash = std::hash<typename Container::value_type>{};
   return std::accumulate(
       container.begin(), container.end(), size_t{1},
       [&](size_t cur_val, auto const &elem) { return cur_val * hash(elem); });
@@ -133,13 +133,13 @@ static auto Enumerate(Container const &container) {
   return map;
 }
 
+template <class U> auto static IdWrapperNextId = std::atomic_size_t{0};
 template <typename T> class IdWrapper final {
-  template <class U> auto static nextId = std::atomic_size_t{0};
   T value;
   size_t id;
 
 public:
-  IdWrapper(T &&value) : value(std::move(value)), id(nextId<T> ++) {}
+  IdWrapper(T &&value) : value(std::move(value)), id(IdWrapperNextId<T> ++) {}
 
   size_t GetId() const noexcept { return id; }
   constexpr T const &Get() const noexcept { return value; }
