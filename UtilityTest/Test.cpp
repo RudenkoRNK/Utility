@@ -4,6 +4,7 @@
 #include "Utility/Misc.hpp"
 #include "Utility/TypeTraits.hpp"
 #include <boost/test/included/unit_test.hpp>
+#include <complex>
 #include <functional>
 #include <random>
 #include <unordered_map>
@@ -118,6 +119,13 @@ BOOST_AUTO_TEST_CASE(utility_test) {
   BOOST_TEST(abs(Utility::Mean(v) - (N - 1) / 2) < 0.000001);
   BOOST_TEST(abs(Utility::RMS(v) - sqrt((N - 1) * (2 * N - 1) / 6)) < 0.0001);
   BOOST_TEST(abs(Utility::Variance(v) - (N * N - 1) / 12) < 0.000001);
+
+  auto y = std::vector<std::complex<int>>{0, 1, 2, 3, 4};
+  BOOST_TEST(abs(Utility::Mean(x) - 2) < 0.000001);
+  BOOST_TEST(abs(Utility::RMS(x) - sqrt(6)) < 0.000001);
+  BOOST_TEST(abs(Utility::Variance(x) - 2) < 0.000001);
+  auto fit2 = Utility::LeastSquares(x);
+  BOOST_TEST(abs(fit2.Slope - 1) < 0.000001);
 }
 
 BOOST_AUTO_TEST_CASE(save_restore) {
@@ -245,7 +253,6 @@ BOOST_AUTO_TEST_CASE(exception_guard_test) {
       auto g = Utility::ExceptionGuard(*this);
       if (val == 10)
         throw std::runtime_error("");
-
     }
     void Clear() noexcept { val = 0; }
   };
