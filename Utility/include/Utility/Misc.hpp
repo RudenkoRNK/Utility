@@ -26,9 +26,9 @@ static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
 template <typename T, typename Indexer, typename IndexFunction>
 static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                     IndexFunction &&Index) {
-  static_assert(noexcept(Index(perm[0])));
-  static_assert(noexcept(std::swap(perm[0], perm[1])));
-  static_assert(noexcept(std::swap(v[0], v[1])));
+  static_assert(std::is_nothrow_swappable_v<T>);
+  static_assert(std::is_nothrow_swappable_v<Indexer>);
+  static_assert(std::is_nothrow_invocable_v<IndexFunction, Indexer>);
   assert(v.size() == perm.size());
   if (v.size() == 0)
     return;
@@ -76,7 +76,8 @@ static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
 }
 
 template <typename T> class SaveRestore final {
-  static_assert(noexcept(T(std::declval<T>())));
+  static_assert(std::is_nothrow_move_constructible_v<T>);
+  static_assert(std::is_nothrow_move_assignable_v<T>);
   T &restoreTo;
   T originalValue;
 
