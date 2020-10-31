@@ -76,8 +76,7 @@ private:
           typename CallableTraits<Callable_>::template ArgType<Indices>...)>;
 
   using RawCallable = std::remove_cvref_t<Callable>;
-  using ArgTypes =
-      typename ArgTypes_<RawCallable, GetCallableType<RawCallable>()>;
+  using ArgTypes = ArgTypes_<RawCallable, GetCallableType<RawCallable>()>;
   using Types = typename ArgTypes::Types;
 
 public:
