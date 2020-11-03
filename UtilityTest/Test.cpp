@@ -266,3 +266,39 @@ BOOST_AUTO_TEST_CASE(exception_guard_test) {
   }
   BOOST_TEST(s.val == 0);
 }
+
+BOOST_AUTO_TEST_CASE(benchmark_test) {
+  struct AAA {
+    AAA(size_t) {}
+    AAA(AAA const &) = delete;
+    AAA(AAA &&) = delete;
+    AAA &operator=(AAA const &) = delete;
+    AAA &operator=(AAA &&) = delete;
+  };
+  auto aaa = AAA(size_t{3});
+
+  auto f1 = []() {};
+  auto f2 = [](int x) {};
+  auto f3 = [](int x, int y) {};
+  auto f4 = [](size_t x) {};
+  auto f5 = [](size_t x, size_t y) {};
+  auto f6 = [](AAA &&x, size_t y) {};
+  auto f7 = [](AAA &x, size_t y) {};
+  auto f8 = [](AAA const &x, size_t y) {};
+  Utility::Benchmark(f1);
+  Utility::Benchmark(f1, size_t{10});
+  Utility::Benchmark(f2, 3);
+  Utility::Benchmark(f2, 3, size_t{10});
+  Utility::Benchmark(f3, 3, 4);
+  Utility::Benchmark(f3, 3, 4, size_t{10});
+  Utility::Benchmark(f4, 3);
+  Utility::Benchmark(f4, 3, size_t{10});
+  Utility::Benchmark(f5, 3, size_t{4});
+  Utility::Benchmark(f5, 3, size_t{4}, size_t{10});
+  Utility::Benchmark(f6, AAA{3}, size_t{4});
+  Utility::Benchmark(f6, AAA{3}, size_t{4}, size_t{10});
+  Utility::Benchmark(f7, aaa, size_t{4});
+  Utility::Benchmark(f7, aaa, size_t{4}, size_t{10});
+  Utility::Benchmark(f8, AAA{3}, size_t{4});
+  Utility::Benchmark(f8, AAA{3}, size_t{4}, size_t{10});
+}

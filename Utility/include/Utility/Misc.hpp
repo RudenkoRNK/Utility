@@ -2,6 +2,7 @@
 
 #define NOMINMAX
 
+#include <Utility/TypeTraits.hpp>
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -68,11 +69,40 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
 }
 
 template <typename FG, typename... Args>
-static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
+static std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
+                                           Args &&... args) {
+  static_assert(CallableTraits<FG>::nArguments == sizeof...(args));
   auto start = std::chrono::steady_clock::now();
-  Func(std::forward<Args>(args)...);
+  for (auto i = size_t{0}; i < nRuns; ++i)
+    Func(std::forward<Args>(args)...);
   auto end = std::chrono::steady_clock::now();
-  return end - start;
+  return (end - start) / nRuns;
+}
+
+template <std::size_t... Indices>
+static auto _AppendSize(std::index_sequence<Indices...>)
+    -> std::index_sequence<sizeof...(Indices), Indices...> {
+  return {};
+}
+
+template <typename FG, typename Tuple, std::size_t... Indices>
+static auto _Benchmark2(FG &&Func, Tuple &&tuple,
+                        std::index_sequence<Indices...>) {
+  return _Benchmark(std::forward<FG>(Func),
+                    std::get<Indices>(std::forward<Tuple>(tuple))...);
+}
+
+template <typename FG, typename... Args>
+static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
+  if constexpr (CallableTraits<FG>::nArguments + 1 == sizeof...(args)) {
+    auto &&tuple = std::forward_as_tuple(std::forward<Args>(args)...);
+    auto &&Inds =
+        _AppendSize(std::make_index_sequence<CallableTraits<FG>::nArguments>{});
+    return _Benchmark2(std::forward<FG>(Func),
+                       std::forward<decltype(tuple)>(tuple), Inds);
+  } else
+    return _Benchmark(std::forward<FG>(Func), size_t{1},
+                      std::forward<Args>(args)...);
 }
 
 template <typename T> class SaveRestore final {
