@@ -163,13 +163,12 @@ static auto Enumerate(Container const &container) {
   return map;
 }
 
-template <class U> auto static IdWrapperNextId = std::atomic_size_t{0};
 template <typename T> class IdWrapper final {
   T value;
   size_t id;
 
 public:
-  IdWrapper(T &&value) : value(std::move(value)), id(IdWrapperNextId<T> ++) {}
+  IdWrapper(T &&value, size_t id) : value(std::move(value)), id(id) {}
 
   size_t GetId() const noexcept { return id; }
   constexpr T const &Get() const noexcept { return value; }
