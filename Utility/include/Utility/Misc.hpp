@@ -112,8 +112,8 @@ template <typename T> class SaveRestore final {
   T originalValue;
 
 public:
-  SaveRestore(T &value) : restoreTo(value), originalValue(value) {}
-  SaveRestore(T &&value, T &restoreTo) noexcept
+  explicit SaveRestore(T &value) : restoreTo(value), originalValue(value) {}
+  explicit SaveRestore(T &&value, T &restoreTo) noexcept
       : restoreTo(restoreTo), originalValue(std::move(value)) {}
 
   SaveRestore(SaveRestore const &) = delete;
@@ -129,7 +129,7 @@ template <typename T> class ExceptionGuard final {
   T &value;
 
 public:
-  ExceptionGuard(T &value) noexcept : value(value) {}
+  explicit ExceptionGuard(T &value) noexcept : value(value) {}
 
   ExceptionGuard(ExceptionGuard const &) = delete;
   ExceptionGuard(ExceptionGuard &&) = delete;
