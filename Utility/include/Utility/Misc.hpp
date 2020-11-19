@@ -105,6 +105,61 @@ static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
                       std::forward<Args>(args)...);
 }
 
+// Similar to boost::logic::tribool but with other naming
+class AutoOption final {
+  enum class Option { False, True, Auto };
+  Option option;
+
+public:
+  constexpr AutoOption() noexcept : option(Option::Auto){};
+  constexpr AutoOption(bool option) noexcept
+      : option(option ? Option::True : Option::False){};
+  constexpr bool isTrue() const noexcept { return option == Option::True; }
+  constexpr bool isFalse() const noexcept { return option == Option::False; }
+  constexpr bool isAuto() const noexcept { return option == Option::Auto; }
+  constexpr AutoOption operator!() const noexcept {
+    if (isAuto())
+      return AutoOption{};
+    return AutoOption{isTrue() ? false : true};
+  }
+  explicit constexpr operator bool() const noexcept {
+    return option == Option::True;
+  }
+
+  static constexpr AutoOption True() noexcept { return AutoOption{true}; }
+  static constexpr AutoOption False() noexcept { return AutoOption{false}; }
+  static constexpr AutoOption Auto() noexcept { return AutoOption{}; }
+};
+static constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
+  if (x.isFalse() || y.isFalse())
+    return AutoOption{false};
+  if (x.isAuto() || y.isAuto())
+    return AutoOption{};
+  return AutoOption{true};
+}
+static constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
+  if (x.isTrue() || y.isTrue())
+    return AutoOption{true};
+  if (x.isAuto() || y.isAuto())
+    return AutoOption{};
+  return AutoOption{false};
+}
+static constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
+  // Lukasiewicz logic
+  if (x.isTrue() && y.isTrue())
+    return AutoOption::True();
+  if (x.isFalse() && y.isFalse())
+    return AutoOption::True();
+  if (x.isAuto() && y.isAuto())
+    return AutoOption::True();
+  if (x.isAuto() || y.isAuto())
+    return AutoOption::Auto();
+  return AutoOption::False();
+}
+static constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
+  return !(x == y);
+}
+
 template <typename T> class SaveRestore final {
   static_assert(std::is_nothrow_move_constructible_v<T>);
   static_assert(std::is_nothrow_move_assignable_v<T>);

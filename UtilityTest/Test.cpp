@@ -302,3 +302,83 @@ BOOST_AUTO_TEST_CASE(benchmark_test) {
   Utility::Benchmark(f8, AAA{3}, size_t{4});
   Utility::Benchmark(f8, AAA{3}, size_t{4}, size_t{10});
 }
+
+BOOST_AUTO_TEST_CASE(auto_option_test) {
+  using namespace Utility;
+  auto t = AutoOption::True();
+  auto f = AutoOption::False();
+  auto a = AutoOption::Auto();
+  BOOST_TEST(t.isTrue());
+  BOOST_TEST(f.isFalse());
+  BOOST_TEST(!a.isTrue());
+  BOOST_TEST(!a.isFalse());
+  BOOST_TEST(a.isAuto());
+  BOOST_TEST(static_cast<bool>(t == t));
+  BOOST_TEST(static_cast<bool>(f == f));
+  BOOST_TEST(static_cast<bool>(a == a));
+
+  BOOST_TEST(static_cast<bool>(t == !f));
+  BOOST_TEST(static_cast<bool>(f == !t));
+  BOOST_TEST(static_cast<bool>(a == !a));
+  BOOST_TEST(static_cast<bool>(t == !!t));
+  BOOST_TEST(static_cast<bool>(f == !!f));
+  BOOST_TEST(static_cast<bool>(a == !!a));
+
+  BOOST_TEST(static_cast<bool>(t != f));
+  BOOST_TEST(static_cast<bool>(f != t));
+  BOOST_TEST(!static_cast<bool>(t != a));
+  BOOST_TEST(!static_cast<bool>(f != a));
+
+  BOOST_TEST(static_cast<bool>(t == true));
+  BOOST_TEST(static_cast<bool>(f == false));
+  BOOST_TEST(static_cast<bool>(t != false));
+  BOOST_TEST(static_cast<bool>(f != true));
+  BOOST_TEST(!static_cast<bool>(a != true));
+  BOOST_TEST(!static_cast<bool>(a != false));
+
+  BOOST_TEST(static_cast<bool>(t));
+  BOOST_TEST(static_cast<bool>(!f));
+  BOOST_TEST(!static_cast<bool>(a));
+  BOOST_TEST(!static_cast<bool>(!a));
+  BOOST_TEST(!static_cast<bool>(!!a));
+
+  auto Impl = [](AutoOption x, AutoOption y) {
+    if (x.isFalse() || y.isTrue())
+      return AutoOption::True();
+    if (x.isAuto() && y.isAuto())
+      return AutoOption::True();
+    if (x.isTrue() && y.isFalse())
+      return AutoOption::False();
+    return AutoOption::Auto();
+  };
+  auto Or = [&](AutoOption x, AutoOption y) { return Impl(Impl(x, y), y); };
+  auto And = [&](AutoOption x, AutoOption y) { return !(Or(!x, !y)); };
+  auto Eq = [&](AutoOption x, AutoOption y) {
+    return And(Impl(x, y), Impl(y, x));
+  };
+
+  auto X = std::vector<AutoOption>{t, f, a};
+  for (auto x : X)
+    for (auto y : X) {
+      BOOST_TEST(static_cast<bool>((x || y) == Or(x, y)));
+      BOOST_TEST(static_cast<bool>((x && y) == And(x, y)));
+      BOOST_TEST(static_cast<bool>((x == y) == Eq(x, y)));
+    }
+
+  if (t)
+    BOOST_TEST(true);
+  else
+    BOOST_TEST(false);
+  if (f)
+    BOOST_TEST(false);
+  else
+    BOOST_TEST(true);
+  if (a)
+    BOOST_TEST(false);
+  else
+    BOOST_TEST(true);
+  if (!a)
+    BOOST_TEST(false);
+  else
+    BOOST_TEST(true);
+}
