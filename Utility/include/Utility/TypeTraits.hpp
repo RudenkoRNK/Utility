@@ -16,8 +16,7 @@ private:
 
 public:
   template <template <typename...> typename Template, typename Instance>
-  auto constexpr static isInstanceOf =
-      isInstanceOf_<std::remove_cvref_t<Instance>, Template>::value;
+  auto constexpr static isInstanceOf = isInstanceOf_<Instance, Template>::value;
 };
 
 template <typename Callable> struct CallableTraits final {
