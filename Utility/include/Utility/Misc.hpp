@@ -7,6 +7,7 @@
 #include <cassert>
 #include <chrono>
 #include <exception>
+#include <execution>
 #include <numeric>
 #include <unordered_map>
 #include <vector>
@@ -197,6 +198,71 @@ public:
   ~RAII() {
     if (!callOnlyOnException || std::uncaught_exceptions())
       callable();
+  }
+};
+
+// Save exceptions in multithreaded environment
+class ExceptionSaver final {
+  std::atomic<size_t> nCapturedExceptions;
+  std::atomic<size_t> nSavedExceptions;
+  std::vector<std::exception_ptr> exceptions;
+  size_t maxExceptions;
+
+public:
+  ExceptionSaver(size_t maxExceptions = 1) : maxExceptions(maxExceptions) {
+    exceptions.resize(maxExceptions);
+  }
+
+  template <typename Callable> auto Wrap(Callable &&callable) {
+    using ReturnType = typename CallableTraits<Callable>::template Type<0>;
+    static_assert(std::is_void_v<ReturnType> ||
+                  (std::is_nothrow_default_constructible_v<ReturnType> &&
+                   !std::is_reference_v<ReturnType>));
+    return _Wrap(
+        std::forward<Callable>(callable),
+        std::make_index_sequence<CallableTraits<Callable>::nArguments>{});
+  }
+
+  ExceptionSaver(ExceptionSaver const &) = delete;
+  ExceptionSaver(ExceptionSaver &&) = delete;
+  ExceptionSaver &operator=(ExceptionSaver const &) = delete;
+  ExceptionSaver &operator=(ExceptionSaver &&) = delete;
+
+  // Not thread-safe
+  void Rethrow() {
+    while (!exceptions.empty() && !exceptions.back())
+      exceptions.pop_back();
+    if (exceptions.empty())
+      return;
+    auto e = exceptions.back();
+    exceptions.pop_back();
+    --nSavedExceptions;
+    std::rethrow_exception(e);
+  }
+  size_t GetNCapturedExceptions() noexcept { return nCapturedExceptions; }
+  size_t GetNSavedExceptions() noexcept { return nSavedExceptions; }
+
+private:
+  template <class Callable, size_t... Indices>
+  auto _Wrap(Callable &&callable, std::integer_sequence<size_t, Indices...>) {
+    using ReturnType = typename CallableTraits<Callable>::template Type<0>;
+    return [&](typename CallableTraits<Callable>::template ArgType<
+               Indices>... args) {
+      try {
+        return callable(
+            std::forward<
+                typename CallableTraits<Callable>::template ArgType<Indices>>(
+                args)...);
+      } catch (std::exception &) {
+        size_t index = nCapturedExceptions++;
+        if (index < maxExceptions) {
+          ++nSavedExceptions;
+          exceptions[index] = std::current_exception();
+        }
+        if constexpr (!std::is_void_v<ReturnType>)
+          return ReturnType{};
+      }
+    };
   }
 };
 

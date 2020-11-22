@@ -383,3 +383,19 @@ BOOST_AUTO_TEST_CASE(auto_option_test) {
   else
     BOOST_TEST(true);
 }
+
+BOOST_AUTO_TEST_CASE(exception_handler_test) {
+  auto h = Utility::ExceptionSaver{10};
+  auto i1 = Utility::GetIndices(20);
+
+  std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
+                h.Wrap([&](size_t i) { throw std::runtime_error{""}; }));
+
+  while (h.GetNSavedExceptions()) {
+    try {
+      h.Rethrow();
+    } catch (std::runtime_error &) {
+    }
+  }
+  h.Rethrow();
+}
