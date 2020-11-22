@@ -250,7 +250,8 @@ BOOST_AUTO_TEST_CASE(exception_guard_test) {
   struct ThrowingStruct {
     int val = 1;
     void ThrowingMethod1() {
-      auto g = Utility::ExceptionGuard(*this);
+      auto g = Utility::RAII(
+          [&]() noexcept { Clear(); }, true);
       if (val == 10)
         throw std::runtime_error("");
     }

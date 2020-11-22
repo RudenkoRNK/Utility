@@ -180,21 +180,23 @@ public:
   ~SaveRestore() { restoreTo = std::move(originalValue); }
 };
 
-template <typename T> class ExceptionGuard final {
-  static_assert(noexcept(std::declval<T>().Clear()));
-  T &value;
+template <typename Callable> class RAII final {
+  static_assert(noexcept(std::declval<Callable>()()));
+  Callable &callable;
+  bool callOnlyOnException;
 
 public:
-  explicit ExceptionGuard(T &value) noexcept : value(value) {}
+  explicit RAII(Callable &callable, bool callOnlyOnException = false) noexcept
+      : callable(callable), callOnlyOnException(callOnlyOnException) {}
 
-  ExceptionGuard(ExceptionGuard const &) = delete;
-  ExceptionGuard(ExceptionGuard &&) = delete;
-  ExceptionGuard &operator=(ExceptionGuard const &) = delete;
-  ExceptionGuard &operator=(ExceptionGuard &&) = delete;
+  RAII(RAII const &) = delete;
+  RAII(RAII &&) = delete;
+  RAII &operator=(RAII const &) = delete;
+  RAII &operator=(RAII &&) = delete;
 
-  ~ExceptionGuard() {
-    if (std::uncaught_exceptions())
-      value.Clear();
+  ~RAII() {
+    if (!callOnlyOnException || std::uncaught_exceptions())
+      callable();
   }
 };
 
