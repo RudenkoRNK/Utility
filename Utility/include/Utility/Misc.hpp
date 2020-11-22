@@ -30,6 +30,7 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   static_assert(std::is_nothrow_swappable_v<T>);
   static_assert(std::is_nothrow_swappable_v<Indexer>);
   static_assert(std::is_nothrow_invocable_v<IndexFunction, Indexer>);
+  using std::swap;
   assert(v.size() == perm.size());
   if (v.size() == 0)
     return;
@@ -55,15 +56,15 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   std::iota(control.begin(), control.end(), size_t{0});
   for (auto i = size_t{0}, e = v.size(); i != e; ++i) {
     while (Index(perm[i]) != i) {
-      std::swap(control[i], control[Index(perm[i])]);
-      std::swap(perm[i], perm[Index(perm[i])]);
+      swap(control[i], control[Index(perm[i])]);
+      swap(perm[i], perm[Index(perm[i])]);
     }
   }
   for (auto i = size_t{0}, e = v.size(); i != e; ++i) {
     while (control[i] != i) {
-      std::swap(v[i], v[control[i]]);
-      std::swap(perm[i], perm[control[i]]);
-      std::swap(control[i], control[control[i]]);
+      swap(v[i], v[control[i]]);
+      swap(perm[i], perm[control[i]]);
+      swap(control[i], control[control[i]]);
     }
   }
 }
