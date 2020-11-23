@@ -181,14 +181,18 @@ public:
   ~SaveRestore() { restoreTo = std::move(originalValue); }
 };
 
-template <typename Callable> class RAII final {
-  static_assert(noexcept(std::declval<Callable>()()));
-  Callable &callable;
-  bool callOnlyOnException;
+template <typename NoExceptionCallable, typename ExceptionCallable>
+class RAII final {
+  static_assert(noexcept(std::declval<ExceptionCallable>()()));
+  NoExceptionCallable &callNoException;
+  ExceptionCallable &callException;
 
 public:
-  explicit RAII(Callable &callable, bool callOnlyOnException = false) noexcept
-      : callable(callable), callOnlyOnException(callOnlyOnException) {}
+  RAII(ExceptionCallable &callAlways)
+  noexcept : callNoException(callAlways), callException(callAlways) {}
+
+  RAII(NoExceptionCallable &callNoException, ExceptionCallable &callException)
+  noexcept : callNoException(callNoException), callException(callException) {}
 
   RAII(RAII const &) = delete;
   RAII(RAII &&) = delete;
@@ -196,10 +200,14 @@ public:
   RAII &operator=(RAII &&) = delete;
 
   ~RAII() {
-    if (!callOnlyOnException || std::uncaught_exceptions())
-      callable();
+    if (!std::uncaught_exceptions())
+      callNoException();
+    else
+      callException();
   }
 };
+template <typename NoExceptionCallable>
+RAII(NoExceptionCallable &)->RAII<NoExceptionCallable, NoExceptionCallable>;
 
 // Save exceptions in multithreaded environment
 class ExceptionSaver final {
@@ -230,13 +238,10 @@ public:
 
   // Not thread-safe
   void Rethrow() {
-    while (!exceptions.empty() && !exceptions.back())
-      exceptions.pop_back();
-    if (exceptions.empty())
+    if (!nSavedExceptions)
       return;
-    auto e = exceptions.back();
-    exceptions.pop_back();
-    --nSavedExceptions;
+    auto e = exceptions[--nSavedExceptions];
+    exceptions[nSavedExceptions] = std::exception_ptr{};
     std::rethrow_exception(e);
   }
   size_t GetNCapturedExceptions() noexcept { return nCapturedExceptions; }

@@ -250,13 +250,13 @@ BOOST_AUTO_TEST_CASE(exception_guard_test) {
   struct ThrowingStruct {
     int val = 1;
     void ThrowingMethod1() {
-      auto g = Utility::RAII(
-          [&]() noexcept { Clear(); }, true);
+      auto g = Utility::RAII([]() {}, [&]() noexcept { Clear(); });
       if (val == 10)
         throw std::runtime_error("");
     }
     void Clear() noexcept { val = 0; }
   };
+  auto g1 = Utility::RAII([]() noexcept {});
   auto s = ThrowingStruct{};
   s.ThrowingMethod1();
   BOOST_TEST(s.val == 1);
