@@ -399,3 +399,75 @@ BOOST_AUTO_TEST_CASE(exception_handler_test) {
   }
   h.Rethrow();
 }
+
+BOOST_AUTO_TEST_CASE(raii_test) {
+  auto copyCnt = size_t{0};
+  auto noex = false;
+  auto ex = false;
+  struct Act {
+    size_t &copyCnt;
+    bool &act;
+    Act(size_t &copyCnt, bool &act) : copyCnt(copyCnt), act(act) {}
+    Act(Act const &a) : copyCnt(a.copyCnt), act(a.act) { ++copyCnt; }
+    Act(Act &&a) : copyCnt(a.copyCnt), act(a.act) {}
+    Act &operator=(Act const &a) { ++copyCnt; }
+    Act &operator=(Act &&) {}
+    void operator()() noexcept { act = true; }
+  };
+
+  {
+    copyCnt = size_t{0};
+    noex = false;
+    ex = false;
+    auto exact = Act(copyCnt, ex);
+    auto noexact = Act(copyCnt, noex);
+    auto raii = Utility::RAII(std::move(noexact), std::move(exact));
+  }
+  BOOST_TEST(noex == true);
+  BOOST_TEST(ex == false);
+  BOOST_TEST(copyCnt == 0);
+
+  {
+    copyCnt = size_t{0};
+    noex = false;
+    ex = false;
+    auto raii = Utility::RAII(Act(copyCnt, noex), Act(copyCnt, ex));
+  }
+  BOOST_TEST(noex == true);
+  BOOST_TEST(ex == false);
+  BOOST_TEST(copyCnt == 0);
+
+  {
+    copyCnt = size_t{0};
+    noex = false;
+    ex = false;
+    auto raii = Utility::RAII(Act(copyCnt, noex));
+  }
+  BOOST_TEST(noex == true);
+  BOOST_TEST(ex == false);
+  BOOST_TEST(copyCnt == 0);
+
+  try {
+    copyCnt = size_t{0};
+    noex = false;
+    ex = false;
+    auto raii = Utility::RAII(Act(copyCnt, noex), Act(copyCnt, ex));
+    throw std::runtime_error("");
+  } catch (std::exception &) {
+  }
+  BOOST_TEST(noex == false);
+  BOOST_TEST(ex == true);
+  BOOST_TEST(copyCnt == 0);
+
+  try {
+    copyCnt = size_t{0};
+    noex = false;
+    ex = false;
+    auto raii = Utility::RAII(Act(copyCnt, ex));
+    throw std::runtime_error("");
+  } catch (std::exception &) {
+  }
+  BOOST_TEST(noex == false);
+  BOOST_TEST(ex == true);
+  BOOST_TEST(copyCnt == 0);
+}

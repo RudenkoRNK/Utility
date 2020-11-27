@@ -184,15 +184,18 @@ public:
 template <typename NoExceptionCallable, typename ExceptionCallable>
 class RAII final {
   static_assert(noexcept(std::declval<ExceptionCallable>()()));
-  NoExceptionCallable &callNoException;
-  ExceptionCallable &callException;
+  NoExceptionCallable callNoException;
+  ExceptionCallable callException;
 
 public:
-  RAII(ExceptionCallable &callAlways)
-  noexcept : callNoException(callAlways), callException(callAlways) {}
+  RAII(NoExceptionCallable &&callAlways)
+      : callNoException(std::move(callAlways)), callException(callNoException) {
+    static_assert(std::is_reference_v<ExceptionCallable>);
+  }
 
-  RAII(NoExceptionCallable &callNoException, ExceptionCallable &callException)
-  noexcept : callNoException(callNoException), callException(callException) {}
+  RAII(NoExceptionCallable &&callNoException, ExceptionCallable &&callException)
+      : callNoException(std::move(callNoException)),
+        callException(std::move(callException)) {}
 
   RAII(RAII const &) = delete;
   RAII(RAII &&) = delete;
@@ -207,7 +210,9 @@ public:
   }
 };
 template <typename NoExceptionCallable>
-RAII(NoExceptionCallable &)->RAII<NoExceptionCallable, NoExceptionCallable>;
+RAII(NoExceptionCallable &&)
+    ->RAII<std::remove_reference_t<NoExceptionCallable>,
+           std::add_lvalue_reference_t<NoExceptionCallable>>;
 
 // Save exceptions in multithreaded environment
 class ExceptionSaver final {
