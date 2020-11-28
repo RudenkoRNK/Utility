@@ -249,8 +249,8 @@ public:
     exceptions[nSavedExceptions] = std::exception_ptr{};
     std::rethrow_exception(e);
   }
-  size_t GetNCapturedExceptions() noexcept { return nCapturedExceptions; }
-  size_t GetNSavedExceptions() noexcept { return nSavedExceptions; }
+  size_t NCapturedExceptions() noexcept { return nCapturedExceptions; }
+  size_t NSavedExceptions() noexcept { return nSavedExceptions; }
 
 private:
   template <class Callable, size_t... Indices>
@@ -304,19 +304,19 @@ template <typename T> class IdWrapper final {
 public:
   IdWrapper(T &&value, size_t id) : value(std::move(value)), id(id) {}
 
-  size_t GetId() const noexcept { return id; }
-  constexpr T const &Get() const noexcept { return value; }
+  size_t Id() const noexcept { return id; }
+  constexpr T const &Value() const noexcept { return value; }
   constexpr operator T const &() const noexcept { return value; }
 };
 template <class T>
 static bool operator==(IdWrapper<T> const &lhs,
                        IdWrapper<T> const &rhs) noexcept {
-  auto ieq = lhs.GetId() == rhs.GetId();
-  assert((lhs.Get() == rhs.Get()) == ieq);
+  auto ieq = lhs.Id() == rhs.Id();
+  assert((lhs.Value() == rhs.Value()) == ieq);
   return ieq;
 }
 template <class T> static size_t hash_value(IdWrapper<T> const &val) noexcept {
-  return val.GetId();
+  return val.Id();
 }
 } // namespace Utility
 

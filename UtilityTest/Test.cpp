@@ -228,12 +228,12 @@ BOOST_AUTO_TEST_CASE(id_wrapper_test) {
   auto y2 = Utility::IdWrapper<AAA>({1, 2}, 1);
   auto y3 = Utility::IdWrapper<AAA>({1, 3}, 2);
 
-  BOOST_TEST(x1.GetId() == 0);
-  BOOST_TEST(x2.GetId() == 1);
-  BOOST_TEST(x3.GetId() == 2);
-  BOOST_TEST(y1.GetId() == 0);
-  BOOST_TEST(y2.GetId() == 1);
-  BOOST_TEST(y3.GetId() == 2);
+  BOOST_TEST(x1.Id() == 0);
+  BOOST_TEST(x2.Id() == 1);
+  BOOST_TEST(x3.Id() == 2);
+  BOOST_TEST(y1.Id() == 0);
+  BOOST_TEST(y2.Id() == 1);
+  BOOST_TEST(y3.Id() == 2);
   BOOST_TEST(x2 == 3);
   BOOST_TEST(x3 == 4);
   assert(y2 == AAA(1, 2));
@@ -242,8 +242,8 @@ BOOST_AUTO_TEST_CASE(id_wrapper_test) {
   auto xv = std::vector<IdInt>{x1};
   auto x4 = x1;
 
-  BOOST_TEST(x1.GetId() == xv[0].GetId());
-  BOOST_TEST(x4.GetId() == x1.GetId());
+  BOOST_TEST(x1.Id() == xv[0].Id());
+  BOOST_TEST(x4.Id() == x1.Id());
 }
 
 BOOST_AUTO_TEST_CASE(exception_guard_test) {
@@ -391,7 +391,7 @@ BOOST_AUTO_TEST_CASE(exception_handler_test) {
   std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
                 h.Wrap([&](size_t i) { throw std::runtime_error{""}; }));
 
-  while (h.GetNSavedExceptions()) {
+  while (h.NSavedExceptions()) {
     try {
       h.Rethrow();
     } catch (std::runtime_error &) {
