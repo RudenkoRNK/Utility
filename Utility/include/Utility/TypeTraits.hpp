@@ -98,5 +98,14 @@ public:
   bool constexpr static isConst =
       std::is_const_v<std::remove_reference_t<Type<n>>>;
   bool constexpr static isCallableConst = ArgTypes::isCallableConst;
+
+  template <size_t n>
+  static decltype(auto)
+  Forward(std::add_lvalue_reference_t<std::remove_reference_t<Type<n>>> arg) {
+    if constexpr (isValue<n> || isRValueReference<n>)
+      return std::move(arg);
+    else
+      return arg;
+  }
 };
 } // namespace Utility

@@ -471,3 +471,27 @@ BOOST_AUTO_TEST_CASE(raii_test) {
   BOOST_TEST(ex == true);
   BOOST_TEST(copyCnt == 0);
 }
+
+BOOST_AUTO_TEST_CASE(type_traits_forward_test) {
+  auto F = [](std::string a, std::string &b, std::string &&c,
+              std::string const &d, std::string const e,
+              std::string const &&f) {};
+
+  auto a = std::string("a");
+  auto b = std::string("b");
+  auto c = std::string("c");
+  auto d = std::string("d");
+  auto e = std::string("e");
+  auto f = std::string("f");
+
+  using T = Utility::CallableTraits<decltype(F)>;
+
+  F(T::Forward<1>(a), T::Forward<2>(b), T::Forward<3>(c), T::Forward<4>(d),
+    T::Forward<5>(e), T::Forward<6>(f));
+  BOOST_TEST(a == "");
+  BOOST_TEST(b == "b");
+  BOOST_TEST(c == "c");
+  BOOST_TEST(d == "d");
+  BOOST_TEST(e == "");
+  BOOST_TEST(f == "f");
+}
