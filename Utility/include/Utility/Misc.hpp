@@ -20,11 +20,6 @@ static std::vector<size_t> GetIndices(size_t size) {
   return indices;
 }
 
-template <typename T>
-static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
-  Permute(v, perm, std::identity{});
-}
-
 template <typename T, typename Indexer, typename IndexFunction>
 static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
                     IndexFunction &&Index) {
@@ -68,6 +63,11 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
       swap(control[i], control[control[i]]);
     }
   }
+}
+
+template <typename T>
+static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
+  Permute(v, perm, std::identity{});
 }
 
 template <typename FG, typename... Args>

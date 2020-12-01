@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <complex>
 #include <concepts>
 #include <numeric>
 #include <type_traits>
