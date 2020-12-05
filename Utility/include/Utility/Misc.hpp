@@ -70,6 +70,21 @@ static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
   Permute(v, perm, std::identity{});
 }
 
+template <typename T, typename Comparator>
+static std::vector<size_t> GetSortPermutation(std::vector<T> const &v,
+                                              Comparator &&cmp) {
+  auto permutation = Utility::GetIndices(v.size());
+  std::sort(
+      permutation.begin(), permutation.end(),
+      [&](size_t index0, size_t index1) { return cmp(v[index0], v[index1]); });
+  return permutation;
+}
+
+template <typename T>
+static std::vector<size_t> GetSortPermutation(std::vector<T> const &v) {
+  return GetSortPermutation(v, std::less<>{});
+}
+
 template <typename FG, typename... Args>
 static std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
                                            Args &&... args) {

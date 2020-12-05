@@ -495,3 +495,12 @@ BOOST_AUTO_TEST_CASE(type_traits_forward_test) {
   BOOST_TEST(e == "");
   BOOST_TEST(f == "f");
 }
+
+BOOST_AUTO_TEST_CASE(sort_test) {
+  auto x = std::vector<int>{5, 2, 1, 4, 3};
+  auto sorted = x;
+  std::sort(sorted.begin(), sorted.end());
+  auto p = Utility::GetSortPermutation(x);
+  Utility::Permute(x, p);
+  BOOST_TEST(x == sorted);
+}
