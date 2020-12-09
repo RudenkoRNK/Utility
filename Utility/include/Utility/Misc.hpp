@@ -20,9 +20,10 @@ static std::vector<size_t> GetIndices(size_t size) {
   return indices;
 }
 
-template <typename T, typename Indexer, typename IndexFunction>
-static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
-                    IndexFunction &&Index) {
+template <typename Vector, typename VectorIndexers, typename IndexFunction>
+static void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
+  using T = typename Vector::value_type;
+  using Indexer = typename VectorIndexers::value_type;
   static_assert(std::is_nothrow_swappable_v<T>);
   static_assert(std::is_nothrow_swappable_v<Indexer>);
   static_assert(std::is_nothrow_invocable_v<IndexFunction, Indexer>);
@@ -65,13 +66,13 @@ static void Permute(std::vector<T> &v, std::vector<Indexer> &perm,
   }
 }
 
-template <typename T>
-static void Permute(std::vector<T> &v, std::vector<size_t> &perm) {
+template <typename Vector>
+static void Permute(Vector &v, std::vector<size_t> &perm) {
   Permute(v, perm, std::identity{});
 }
 
-template <typename T, typename Comparator>
-static std::vector<size_t> GetSortPermutation(std::vector<T> const &v,
+template <typename Vector, typename Comparator>
+static std::vector<size_t> GetSortPermutation(Vector const &v,
                                               Comparator &&cmp) {
   auto permutation = Utility::GetIndices(v.size());
   std::sort(
@@ -80,8 +81,8 @@ static std::vector<size_t> GetSortPermutation(std::vector<T> const &v,
   return permutation;
 }
 
-template <typename T>
-static std::vector<size_t> GetSortPermutation(std::vector<T> const &v) {
+template <typename Vector>
+static std::vector<size_t> GetSortPermutation(Vector const &v) {
   return GetSortPermutation(v, std::less<>{});
 }
 
