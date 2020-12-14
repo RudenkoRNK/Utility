@@ -218,7 +218,7 @@ public:
   RAII &operator=(RAII const &) = delete;
   RAII &operator=(RAII &&) = delete;
 
-  ~RAII() {
+  ~RAII() noexcept(noexcept(std::declval<NoExceptionCallable>()())) {
     if (!std::uncaught_exceptions())
       callNoException();
     else
