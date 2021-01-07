@@ -1,8 +1,6 @@
 #pragma once
 
-#define NOMINMAX
-
-#include <Utility/TypeTraits.hpp>
+#include "Utility/TypeTraits.hpp"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -68,7 +66,7 @@ static void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
 
 template <typename Vector>
 static void Permute(Vector &v, std::vector<size_t> &perm) {
-  Permute(v, perm, std::identity{});
+  Permute(v, perm, [](){} /*std::identity{} in c++20*/);
 }
 
 template <typename Vector, typename Comparator>
@@ -293,4 +291,3 @@ private:
 };
 
 } // namespace Utility
-
