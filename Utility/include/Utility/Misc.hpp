@@ -292,54 +292,5 @@ private:
   }
 };
 
-template <typename Container>
-static size_t UnorderedHash(Container const &container) {
-  auto hash = std::hash<typename Container::value_type>{};
-  return std::accumulate(
-      container.begin(), container.end(), size_t{1},
-      [&](size_t cur_val, auto const &elem) { return cur_val * hash(elem); });
-}
-
-template <typename Container>
-static auto Enumerate(Container const &container) {
-  using ElementType = typename Container::value_type;
-  auto map = std::unordered_map<ElementType, size_t>{};
-  auto lastIndex = size_t{0};
-  for (auto const &e : container) {
-    if (map.contains(e))
-      continue;
-    map.emplace(e, lastIndex++);
-  }
-  return map;
-}
-
-template <typename T> class IdWrapper final {
-  T value;
-  size_t id;
-
-public:
-  IdWrapper(T &&value, size_t id) : value(std::move(value)), id(id) {}
-
-  size_t Id() const noexcept { return id; }
-  constexpr T const &Value() const noexcept { return value; }
-  constexpr operator T const &() const noexcept { return value; }
-};
-template <class T>
-static bool operator==(IdWrapper<T> const &lhs,
-                       IdWrapper<T> const &rhs) noexcept {
-  auto ieq = lhs.Id() == rhs.Id();
-  assert((lhs.Value() == rhs.Value()) == ieq);
-  return ieq;
-}
-template <class T> static size_t hash_value(IdWrapper<T> const &val) noexcept {
-  return val.Id();
-}
 } // namespace Utility
 
-namespace std {
-template <class T> struct hash<Utility::IdWrapper<T>> {
-  size_t operator()(Utility::IdWrapper<T> const &val) const noexcept {
-    return Utility::hash_value(val);
-  }
-};
-} // namespace std

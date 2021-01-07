@@ -167,48 +167,6 @@ template <> struct hash<std::pair<const int, double>> {
 };
 } // namespace std
 
-BOOST_AUTO_TEST_CASE(unordered_hash_test) {
-  auto a = std::unordered_set<int>{};
-  auto b = a;
-  auto c = a;
-  auto x = std::unordered_map<int, double>{};
-  auto y = x;
-  auto z = y;
-  a.insert({0, 1, 2, 3, 4, 5});
-  b.insert({3, 2, 0, 4, 5, 1});
-  c.insert({1, 2, 3, 4, 5});
-
-  x.insert({{0, 0.0}, {1, 1.0}, {2, 2.0}, {3, 3.0}});
-  y.insert({{1, 1.0}, {0, 0.0}, {3, 3.0}, {2, 2.0}});
-  z.insert({{0, 0.0}, {1, 1.0}, {2, 3.0}, {3, 3.0}});
-  BOOST_TEST(Utility::UnorderedHash(a) == Utility::UnorderedHash(b));
-  BOOST_TEST(Utility::UnorderedHash(a) != Utility::UnorderedHash(c));
-  BOOST_TEST(Utility::UnorderedHash(x) == Utility::UnorderedHash(y));
-  BOOST_TEST(Utility::UnorderedHash(x) != Utility::UnorderedHash(z));
-}
-
-BOOST_AUTO_TEST_CASE(enumerate_test) {
-  auto a = std::unordered_set<int>{4, 3, 2, 1};
-  auto b = std::vector<int>{4, 3, 2, 1};
-  auto am = Utility::Enumerate(a);
-  auto bm = Utility::Enumerate(b);
-  auto acheck = std::unordered_set<size_t>{};
-  auto bcheck = std::unordered_set<size_t>{};
-  for (auto const &[e, i] : am)
-    acheck.insert(i);
-  for (auto const &[e, i] : bm)
-    bcheck.insert(i);
-
-  BOOST_TEST(acheck.size() == a.size());
-  BOOST_TEST(bcheck.size() == b.size());
-
-  BOOST_TEST(*std::min_element(acheck.begin(), acheck.end()) == 0);
-  BOOST_TEST(*std::max_element(acheck.begin(), acheck.end()) ==
-             acheck.size() - 1);
-  BOOST_TEST(*std::min_element(bcheck.begin(), bcheck.end()) == 0);
-  BOOST_TEST(*std::max_element(bcheck.begin(), bcheck.end()) ==
-             bcheck.size() - 1);
-}
 struct AAA {
   int x;
   int y;
@@ -217,33 +175,6 @@ struct AAA {
 };
 static bool operator==(AAA const &lhs, AAA const &rhs) {
   return lhs.x == rhs.x && lhs.y == rhs.y;
-}
-
-BOOST_AUTO_TEST_CASE(id_wrapper_test) {
-  using IdInt = Utility::IdWrapper<int>;
-  auto x1 = IdInt(1, 0);
-  auto x2 = IdInt(3, 1);
-  auto x3 = IdInt(4, 2);
-  auto y1 = Utility::IdWrapper<AAA>({1, 1}, 0);
-  auto y2 = Utility::IdWrapper<AAA>({1, 2}, 1);
-  auto y3 = Utility::IdWrapper<AAA>({1, 3}, 2);
-
-  BOOST_TEST(x1.Id() == 0);
-  BOOST_TEST(x2.Id() == 1);
-  BOOST_TEST(x3.Id() == 2);
-  BOOST_TEST(y1.Id() == 0);
-  BOOST_TEST(y2.Id() == 1);
-  BOOST_TEST(y3.Id() == 2);
-  BOOST_TEST(x2 == 3);
-  BOOST_TEST(x3 == 4);
-  assert(y2 == AAA(1, 2));
-  assert(y3 == AAA(1, 3));
-
-  auto xv = std::vector<IdInt>{x1};
-  auto x4 = x1;
-
-  BOOST_TEST(x1.Id() == xv[0].Id());
-  BOOST_TEST(x4.Id() == x1.Id());
 }
 
 BOOST_AUTO_TEST_CASE(exception_guard_test) {
