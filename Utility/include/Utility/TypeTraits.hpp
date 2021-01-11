@@ -74,7 +74,8 @@ private:
       -> std::function<typename CallableTraits<Callable_>::ReturnType(
           typename CallableTraits<Callable_>::template ArgType<Indices>...)>;
 
-  using RawCallable = typename std::remove_cv_t<std::remove_reference_t<Callable>>;
+  using RawCallable =
+      typename std::remove_cv_t<std::remove_reference_t<Callable>>;
   using ArgTypes = ArgTypes_<RawCallable, GetCallableType<RawCallable>()>;
   using Types = typename ArgTypes::Types;
 
