@@ -1,19 +1,15 @@
 add_executable(UtilityTest)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
-target_link_libraries(UtilityTest PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(UtilityTest PRIVATE Boost::unit_test_framework)
 target_link_libraries(UtilityTest PRIVATE Utility)
 
 target_include_directories(UtilityTest PRIVATE ${Boost_INCLUDE_DIRS})
 
-set_property(TARGET UtilityTest PROPERTY CXX_STANDARD 20)
-
 file(GLOB UtilityTestSources
   CONFIGURE_DEPENDS
-  ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/*.[hcm]pp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Utility/include/Utility/*.[hcm]pp
 )
-
-target_sources(UtilityTest PRIVATE ${UtilitySources})
 target_sources(UtilityTest PRIVATE ${UtilityTestSources})
