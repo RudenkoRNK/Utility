@@ -16,8 +16,7 @@ namespace Utility {
 
 template <typename Number> concept Numeric = requires() {
   requires std::is_default_constructible_v<Number>;
-  requires std::is_arithmetic_v<Number> ||
-      TypeTraits::isInstanceOf<std::complex, Number>;
+  requires std::is_arithmetic_v<Number> || isInstanceOf<std::complex, Number>;
 };
 
 template <Numeric Number> struct LinearFit {

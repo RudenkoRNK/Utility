@@ -7,17 +7,13 @@
 
 namespace Utility {
 
-class TypeTraits final {
-private:
-  template <typename T, template <typename...> typename Template>
-  struct isInstanceOf_ : std::false_type {};
-  template <template <typename...> typename Template, typename... Args>
-  struct isInstanceOf_<Template<Args...>, Template> : std::true_type {};
+template <typename T, template <typename...> typename Template>
+struct _isInstanceOf : std::false_type {};
+template <template <typename...> typename Template, typename... Args>
+struct _isInstanceOf<Template<Args...>, Template> : std::true_type {};
 
-public:
-  template <template <typename...> typename Template, typename Instance>
-  auto constexpr static isInstanceOf = isInstanceOf_<Instance, Template>::value;
-};
+template <template <typename...> typename Template, typename Instance>
+auto constexpr static isInstanceOf = _isInstanceOf<Instance, Template>::value;
 
 template <typename Callable> struct CallableTraits final {
 private:

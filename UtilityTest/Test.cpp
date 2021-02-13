@@ -89,11 +89,9 @@ BOOST_AUTO_TEST_CASE(arg_traits_test_3) {
 }
 
 BOOST_AUTO_TEST_CASE(type_traits_test) {
-  BOOST_TEST(
-      (Utility::TypeTraits::isInstanceOf<std::vector, std::vector<int>>));
-  BOOST_TEST((!Utility::TypeTraits::isInstanceOf<std::vector,
-                                                 std::unordered_set<int>>));
-  BOOST_TEST((!Utility::TypeTraits::isInstanceOf<std::vector, int>));
+  BOOST_TEST((Utility::isInstanceOf<std::vector, std::vector<int>>));
+  BOOST_TEST((!Utility::isInstanceOf<std::vector, std::unordered_set<int>>));
+  BOOST_TEST((!Utility::isInstanceOf<std::vector, int>));
 }
 
 BOOST_AUTO_TEST_CASE(perm_test) {
