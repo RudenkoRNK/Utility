@@ -34,6 +34,7 @@ template <Numeric Number> auto Mean(std::vector<Number> const &v) {
 }
 
 template <Numeric Number> auto Variance(std::vector<Number> const &v) {
+  static_assert(!isInstanceOf<std::complex, Number>, "Not implemented");
   auto mean = Mean(v);
   using ContinuousType = decltype(mean);
   auto sum = std::inner_product(
@@ -43,7 +44,8 @@ template <Numeric Number> auto Variance(std::vector<Number> const &v) {
 }
 
 // Root mean square
-template <Numeric Number> double RMS(std::vector<Number> const &v) {
+template <Numeric Number> auto RMS(std::vector<Number> const &v) {
+  static_assert(!isInstanceOf<std::complex, Number>, "Not implemented");
   auto sum = std::inner_product(v.begin(), v.end(), v.begin(), Number{});
   return std::sqrt(sum / static_cast<double>(v.size()));
 }
