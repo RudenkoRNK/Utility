@@ -12,14 +12,14 @@
 
 namespace Utility {
 
-static std::vector<size_t> GetIndices(size_t size) {
+inline std::vector<size_t> GetIndices(size_t size) {
   auto indices = std::vector<size_t>(size);
   std::iota(indices.begin(), indices.end(), size_t{0});
   return indices;
 }
 
 template <typename Vector, typename VectorIndexers, typename IndexFunction>
-static void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
+void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
   using T = typename Vector::value_type;
   using Indexer = typename VectorIndexers::value_type;
   static_assert(std::is_nothrow_swappable_v<T>);
@@ -65,14 +65,14 @@ static void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
 }
 
 template <typename Vector>
-static void Permute(Vector &v, std::vector<size_t> &perm) {
+void Permute(Vector &v, std::vector<size_t> &perm) {
   Permute(
       v, perm,
       [](size_t i) noexcept { return i; } /*std::identity{} in c++20*/);
 }
 
 template <typename Vector, typename Comparator>
-static std::vector<size_t> GetSortPermutation(Vector const &v,
+std::vector<size_t> GetSortPermutation(Vector const &v,
                                               Comparator &&cmp) {
   auto permutation = Utility::GetIndices(v.size());
   std::sort(
@@ -82,12 +82,12 @@ static std::vector<size_t> GetSortPermutation(Vector const &v,
 }
 
 template <typename Vector>
-static std::vector<size_t> GetSortPermutation(Vector const &v) {
+std::vector<size_t> GetSortPermutation(Vector const &v) {
   return GetSortPermutation(v, std::less<>{});
 }
 
 template <typename FG, typename... Args>
-static std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
+std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
                                            Args &&... args) {
   static_assert(CallableTraits<FG>::nArguments == sizeof...(args));
   auto start = std::chrono::steady_clock::now();
@@ -98,20 +98,20 @@ static std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
 }
 
 template <std::size_t... Indices>
-static auto _AppendSize(std::index_sequence<Indices...>)
+auto _AppendSize(std::index_sequence<Indices...>)
     -> std::index_sequence<sizeof...(Indices), Indices...> {
   return {};
 }
 
 template <typename FG, typename Tuple, std::size_t... Indices>
-static auto _Benchmark2(FG &&Func, Tuple &&tuple,
+std::chrono::nanoseconds _Benchmark2(FG &&Func, Tuple &&tuple,
                         std::index_sequence<Indices...>) {
   return _Benchmark(std::forward<FG>(Func),
                     std::get<Indices>(std::forward<Tuple>(tuple))...);
 }
 
 template <typename FG, typename... Args>
-static std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
+std::chrono::nanoseconds Benchmark(FG &&Func, Args &&... args) {
   if constexpr (CallableTraits<FG>::nArguments + 1 == sizeof...(args)) {
     auto &&tuple = std::forward_as_tuple(std::forward<Args>(args)...);
     auto &&Inds =
@@ -148,21 +148,21 @@ public:
   static constexpr AutoOption False() noexcept { return AutoOption{false}; }
   static constexpr AutoOption Auto() noexcept { return AutoOption{}; }
 };
-static constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
+inline constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
   if (x.isFalse() || y.isFalse())
     return AutoOption{false};
   if (x.isAuto() || y.isAuto())
     return AutoOption{};
   return AutoOption{true};
 }
-static constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
+inline constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
   if (x.isTrue() || y.isTrue())
     return AutoOption{true};
   if (x.isAuto() || y.isAuto())
     return AutoOption{};
   return AutoOption{false};
 }
-static constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
+inline constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
   // Lukasiewicz logic
   if (x.isTrue() && y.isTrue())
     return AutoOption::True();
@@ -174,7 +174,7 @@ static constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
     return AutoOption::Auto();
   return AutoOption::False();
 }
-static constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
+inline constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
   return !(x == y);
 }
 
