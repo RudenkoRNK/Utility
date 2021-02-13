@@ -68,8 +68,7 @@ template <typename Vector> void Permute(Vector &v, std::vector<size_t> &perm) {
 }
 
 template <typename Vector, typename Comparator>
-std::vector<size_t> GetSortPermutation(Vector const &v,
-                                              Comparator &&cmp) {
+std::vector<size_t> GetSortPermutation(Vector const &v, Comparator &&cmp) {
   auto permutation = Utility::GetIndices(v.size());
   std::sort(
       permutation.begin(), permutation.end(),
@@ -88,8 +87,7 @@ template <typename Generator = std::mt19937> Generator &GetRandomGenerator() {
 }
 
 template <typename FG, typename... Args>
-std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns,
-                                           Args &&... args) {
+std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns, Args &&... args) {
   static_assert(CallableTraits<FG>::nArguments == sizeof...(args));
   auto start = std::chrono::steady_clock::now();
   for (auto i = size_t{0}; i < nRuns; ++i)
@@ -106,7 +104,7 @@ auto _AppendSize(std::index_sequence<Indices...>)
 
 template <typename FG, typename Tuple, std::size_t... Indices>
 std::chrono::nanoseconds _Benchmark2(FG &&Func, Tuple &&tuple,
-                        std::index_sequence<Indices...>) {
+                                     std::index_sequence<Indices...>) {
   return _Benchmark(std::forward<FG>(Func),
                     std::get<Indices>(std::forward<Tuple>(tuple))...);
 }
