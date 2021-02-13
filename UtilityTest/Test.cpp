@@ -5,6 +5,7 @@
 #include "Utility/TypeTraits.hpp"
 #include <boost/test/included/unit_test.hpp>
 #include <complex>
+#include <execution>
 #include <functional>
 #include <random>
 #include <unordered_map>

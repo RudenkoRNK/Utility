@@ -1,11 +1,8 @@
 #pragma once
 
-#define NOMINMAX
-
 #include "Utility/TypeTraits.hpp"
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <complex>
 #include <concepts>
 #include <numeric>

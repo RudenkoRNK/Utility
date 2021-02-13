@@ -5,9 +5,7 @@
 #include <cassert>
 #include <chrono>
 #include <exception>
-#include <execution>
 #include <numeric>
-#include <unordered_map>
 #include <vector>
 
 namespace Utility {
