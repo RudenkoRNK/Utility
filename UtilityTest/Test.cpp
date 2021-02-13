@@ -434,3 +434,31 @@ BOOST_AUTO_TEST_CASE(sort_test) {
   Utility::Permute(x, p);
   BOOST_TEST(x == sorted);
 }
+
+BOOST_AUTO_TEST_CASE(random_test) {
+  auto N = 1000;
+  auto timen = std::chrono::nanoseconds{0};
+  auto d = 0.0;
+  auto rd = std::random_device{};
+
+  auto rdtime = Utility::Benchmark([&]() { d += rd(); }, N);
+  auto gentime = Utility::Benchmark(
+      [&]() {
+        auto gen = std::mt19937{};
+        d += gen();
+      },
+      N);
+  auto staticgentime = Utility::Benchmark(
+      [&]() {
+        auto &&gen = Utility::GetRandomGenerator();
+        d += gen();
+      },
+      N);
+  BOOST_TEST((gentime / staticgentime > 10));
+  auto v = std::vector<int>{};
+  std::generate(std::execution::par_unseq, v.begin(), v.end(), []() {
+    auto &&gen = Utility::GetRandomGenerator();
+    auto rand = std::uniform_int_distribution<int>(1);
+    return rand(gen);
+  });
+}

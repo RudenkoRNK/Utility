@@ -6,6 +6,7 @@
 #include <chrono>
 #include <exception>
 #include <numeric>
+#include <random>
 #include <vector>
 
 namespace Utility {
@@ -79,6 +80,11 @@ std::vector<size_t> GetSortPermutation(Vector const &v,
 template <typename Vector>
 std::vector<size_t> GetSortPermutation(Vector const &v) {
   return GetSortPermutation(v, std::less<>{});
+}
+
+template <typename Generator = std::mt19937> Generator &GetRandomGenerator() {
+  auto static thread_local generator = Generator{std::random_device{}()};
+  return generator;
 }
 
 template <typename FG, typename... Args>
