@@ -180,6 +180,7 @@ inline constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
 template <typename T> class SaveRestore final {
   static_assert(std::is_nothrow_move_constructible_v<T>);
   static_assert(std::is_nothrow_move_assignable_v<T>);
+  static_assert(!std::is_reference_v<T>);
   T &restoreTo;
   T originalValue;
 
@@ -199,6 +200,7 @@ public:
 template <typename NoExceptionCallable, typename ExceptionCallable>
 class RAII final {
   static_assert(noexcept(std::declval<ExceptionCallable>()()));
+  static_assert(!std::is_reference_v<NoExceptionCallable>);
   NoExceptionCallable callNoException;
   ExceptionCallable callException;
 
