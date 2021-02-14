@@ -149,17 +149,17 @@ public:
 };
 constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
   if (x.isFalse() || y.isFalse())
-    return AutoOption{false};
+    return AutoOption::False();
   if (x.isAuto() || y.isAuto())
     return AutoOption{};
-  return AutoOption{true};
+  return AutoOption::True();
 }
 constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
   if (x.isTrue() || y.isTrue())
-    return AutoOption{true};
+    return AutoOption::True();
   if (x.isAuto() || y.isAuto())
-    return AutoOption{};
-  return AutoOption{false};
+    return AutoOption::Auto();
+  return AutoOption::False();
 }
 constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
   // Lukasiewicz logic
