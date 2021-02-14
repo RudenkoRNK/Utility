@@ -462,3 +462,35 @@ BOOST_AUTO_TEST_CASE(random_test) {
     return rand(gen);
   });
 }
+
+BOOST_AUTO_TEST_CASE(enum_iterator_test) {
+  using namespace Utility;
+  enum class SomeEnum { A, B, C, D, E, F };
+  auto h1 = SomeEnum::A;
+  auto h2 = operator++<SomeEnum, SomeEnum::F>(h1);
+  BOOST_TEST((h1 == SomeEnum::B));
+  BOOST_TEST((h2 == SomeEnum::B));
+  h1 = SomeEnum::F;
+  h2 = operator++<SomeEnum, SomeEnum::F>(h1, 0);
+  BOOST_TEST((h1 == SomeEnum::A));
+  BOOST_TEST((h2 == SomeEnum::F));
+  h1 = SomeEnum::A;
+  h2 = operator--<SomeEnum, SomeEnum::F>(h1);
+  BOOST_TEST((h1 == SomeEnum::F));
+  BOOST_TEST((h2 == SomeEnum::F));
+  h1 = SomeEnum::F;
+  h2 = operator--<SomeEnum, SomeEnum::F>(h1, 0);
+  BOOST_TEST((h1 == SomeEnum::E));
+  BOOST_TEST((h2 == SomeEnum::F));
+
+  auto cnt = 0;
+  for (auto h = SomeEnum::F;
+       operator++<SomeEnum, SomeEnum::F>(h) != SomeEnum::F;)
+    ++cnt;
+  BOOST_TEST(cnt == static_cast<int>(SomeEnum::F));
+  cnt = 0;
+  for (auto h = SomeEnum::F;
+       operator--<SomeEnum, SomeEnum::F>(h) != SomeEnum::F;)
+    ++cnt;
+  BOOST_TEST(cnt == static_cast<int>(SomeEnum::F));
+}

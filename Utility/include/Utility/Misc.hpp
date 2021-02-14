@@ -293,4 +293,29 @@ private:
   }
 };
 
+template <typename Enum, Enum LastElement> Enum &operator++(Enum &element) {
+  auto max = static_cast<int>(LastElement);
+  auto e = static_cast<int>(element);
+  auto nextE = (e + 1) % (max + 1);
+  element = static_cast<Enum>(nextE);
+  return element;
+}
+template <typename Enum, Enum LastElement> Enum operator++(Enum &element, int) {
+  auto old = element;
+  operator++<Enum, LastElement>(element);
+  return old;
+}
+template <typename Enum, Enum LastElement> Enum &operator--(Enum &element) {
+  auto max = static_cast<int>(LastElement);
+  auto e = static_cast<int>(element);
+  auto nextE = (e + max) % (max + 1);
+  element = static_cast<Enum>(nextE);
+  return element;
+}
+template <typename Enum, Enum LastElement> Enum operator--(Enum &element, int) {
+  auto old = element;
+  operator--<Enum, LastElement>(element);
+  return old;
+}
+
 } // namespace Utility
