@@ -25,12 +25,13 @@ template <Numeric Number> struct LinearFit {
   Number SigmaSlope;
 };
 
-template <Numeric Number> auto Mean(std::vector<Number> const &v) {
+template <Numeric Number> constexpr auto Mean(std::vector<Number> const &v) {
   auto sum = std::accumulate(v.begin(), v.end(), Number{});
   return sum / static_cast<double>(v.size());
 }
 
-template <Numeric Number> auto Variance(std::vector<Number> const &v) {
+template <Numeric Number>
+constexpr auto Variance(std::vector<Number> const &v) {
   static_assert(!isInstanceOf<std::complex, Number>, "Not implemented");
   auto mean = Mean(v);
   using ContinuousType = decltype(mean);
@@ -41,14 +42,14 @@ template <Numeric Number> auto Variance(std::vector<Number> const &v) {
 }
 
 // Root mean square
-template <Numeric Number> auto RMS(std::vector<Number> const &v) {
+template <Numeric Number> constexpr auto RMS(std::vector<Number> const &v) {
   static_assert(!isInstanceOf<std::complex, Number>, "Not implemented");
   auto sum = std::inner_product(v.begin(), v.end(), v.begin(), Number{});
   return std::sqrt(sum / static_cast<double>(v.size()));
 }
 
 template <Numeric NumberX, Numeric NumberY>
-requires std::common_with<NumberX, NumberY> auto
+requires std::common_with<NumberX, NumberY> constexpr auto
 LeastSquares(std::vector<NumberX> const &x, std::vector<NumberY> const &y) {
   assert(x.size() == y.size());
   assert(y.size() >= 2);
@@ -73,7 +74,8 @@ LeastSquares(std::vector<NumberX> const &x, std::vector<NumberY> const &y) {
                                      .SigmaSlope = SigmaSlope};
 }
 
-template <Numeric NumberY> auto LeastSquares(std::vector<NumberY> const &y) {
+template <Numeric NumberY>
+constexpr auto LeastSquares(std::vector<NumberY> const &y) {
   auto x = std::vector<double>(y.size());
   std::iota(x.begin(), x.end(), 0.0);
   return LeastSquares(x, y);

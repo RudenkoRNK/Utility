@@ -147,21 +147,21 @@ public:
   static constexpr AutoOption False() noexcept { return AutoOption{false}; }
   static constexpr AutoOption Auto() noexcept { return AutoOption{}; }
 };
-inline constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
+constexpr AutoOption operator&&(AutoOption x, AutoOption y) noexcept {
   if (x.isFalse() || y.isFalse())
     return AutoOption{false};
   if (x.isAuto() || y.isAuto())
     return AutoOption{};
   return AutoOption{true};
 }
-inline constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
+constexpr AutoOption operator||(AutoOption x, AutoOption y) noexcept {
   if (x.isTrue() || y.isTrue())
     return AutoOption{true};
   if (x.isAuto() || y.isAuto())
     return AutoOption{};
   return AutoOption{false};
 }
-inline constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
+constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
   // Lukasiewicz logic
   if (x.isTrue() && y.isTrue())
     return AutoOption::True();
@@ -173,20 +173,21 @@ inline constexpr AutoOption operator==(AutoOption x, AutoOption y) noexcept {
     return AutoOption::Auto();
   return AutoOption::False();
 }
-inline constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
+constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
   return !(x == y);
 }
 
 template <typename T> class SaveRestore final {
-  static_assert(std::is_nothrow_move_constructible_v<T>);
   static_assert(std::is_nothrow_move_assignable_v<T>);
   static_assert(!std::is_reference_v<T>);
   T &restoreTo;
   T originalValue;
 
 public:
-  explicit SaveRestore(T &value) : restoreTo(value), originalValue(value) {}
-  explicit SaveRestore(T &&value, T &restoreTo) noexcept
+  explicit constexpr SaveRestore(T &value)
+      : restoreTo(value), originalValue(value) {}
+  explicit constexpr SaveRestore(T &&value, T &restoreTo) noexcept(
+      std::is_nothrow_move_constructible_v<T>)
       : restoreTo(restoreTo), originalValue(std::move(value)) {}
 
   SaveRestore(SaveRestore const &) = delete;
@@ -266,8 +267,8 @@ public:
     exceptions[nSavedExceptions] = std::exception_ptr{};
     std::rethrow_exception(e);
   }
-  size_t NCapturedExceptions() noexcept { return nCapturedExceptions; }
-  size_t NSavedExceptions() noexcept { return nSavedExceptions; }
+  size_t NCapturedExceptions() const noexcept { return nCapturedExceptions; }
+  size_t NSavedExceptions() const noexcept { return nSavedExceptions; }
 
 private:
   template <class Callable, size_t... Indices>
@@ -293,26 +294,30 @@ private:
   }
 };
 
-template <typename Enum, Enum LastElement> Enum &operator++(Enum &element) {
+template <typename Enum, Enum LastElement>
+constexpr Enum &operator++(Enum &element) noexcept {
   auto max = static_cast<int>(LastElement);
   auto e = static_cast<int>(element);
   auto nextE = (e + 1) % (max + 1);
   element = static_cast<Enum>(nextE);
   return element;
 }
-template <typename Enum, Enum LastElement> Enum operator++(Enum &element, int) {
+template <typename Enum, Enum LastElement>
+constexpr Enum operator++(Enum &element, int) noexcept {
   auto old = element;
   operator++<Enum, LastElement>(element);
   return old;
 }
-template <typename Enum, Enum LastElement> Enum &operator--(Enum &element) {
+template <typename Enum, Enum LastElement>
+constexpr Enum &operator--(Enum &element) noexcept {
   auto max = static_cast<int>(LastElement);
   auto e = static_cast<int>(element);
   auto nextE = (e + max) % (max + 1);
   element = static_cast<Enum>(nextE);
   return element;
 }
-template <typename Enum, Enum LastElement> Enum operator--(Enum &element, int) {
+template <typename Enum, Enum LastElement>
+constexpr Enum operator--(Enum &element, int) noexcept {
   auto old = element;
   operator--<Enum, LastElement>(element);
   return old;
