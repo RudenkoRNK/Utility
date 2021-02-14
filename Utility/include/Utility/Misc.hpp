@@ -81,7 +81,8 @@ std::vector<size_t> GetSortPermutation(Vector const &v) {
   return GetSortPermutation(v, std::less<>{});
 }
 
-template <typename Generator = std::mt19937> Generator &GetRandomGenerator() {
+template <typename Generator = std::mt19937>
+constexpr Generator &GetRandomGenerator() {
   auto static thread_local generator = Generator{std::random_device{}()};
   return generator;
 }
@@ -184,8 +185,9 @@ template <typename T> class SaveRestore final {
   T originalValue;
 
 public:
-  explicit constexpr SaveRestore(T &value)
-      : restoreTo(value), originalValue(value) {}
+  explicit constexpr SaveRestore(T &value) noexcept(
+      std::is_nothrow_copy_constructible_v<T>)
+      : restoreTo(value), originalValue(std::as_const(value)) {}
   explicit constexpr SaveRestore(T &&value, T &restoreTo) noexcept(
       std::is_nothrow_move_constructible_v<T>)
       : restoreTo(restoreTo), originalValue(std::move(value)) {}

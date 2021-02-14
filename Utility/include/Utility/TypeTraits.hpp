@@ -97,8 +97,9 @@ public:
   bool constexpr static isCallableConst = ArgTypes::isCallableConst;
 
   template <size_t n>
-  static decltype(auto)
-  Forward(std::add_lvalue_reference_t<std::remove_reference_t<Type<n>>> arg) {
+  constexpr static decltype(auto)
+  Forward(std::add_lvalue_reference_t<std::remove_reference_t<Type<n>>>
+              arg) noexcept {
     if constexpr (isValue<n> || isRValueReference<n>)
       return std::move(arg);
     else
