@@ -17,7 +17,7 @@ auto constexpr static isInstanceOf = _isInstanceOf<Instance, Template>::value;
 
 template <typename Callable> struct CallableTraits final {
 private:
-  enum class CallableType { Function, Method, Lambda };
+  enum class CallableKind { Function, Method, Lambda };
 
   template <typename Callable_> struct FunctionArgTypes;
   template <typename Callable_, typename... Args>
@@ -36,32 +36,32 @@ private:
     auto constexpr static isCallableConst = false;
   };
 
-  template <typename Callable_, CallableType> struct ArgTypes_;
+  template <typename Callable_, CallableKind> struct ArgTypes_;
   template <typename Callable_>
-  struct ArgTypes_<Callable_, CallableType::Function> {
+  struct ArgTypes_<Callable_, CallableKind::Function> {
     using Types = typename FunctionArgTypes<Callable_>::Types;
     auto constexpr static isCallableConst = true;
   };
   template <typename Callable_>
-  struct ArgTypes_<Callable_, CallableType::Lambda> {
+  struct ArgTypes_<Callable_, CallableKind::Lambda> {
     using Types = typename LambdaOrMethodArgTypes<decltype(
         &Callable_::operator())>::Types;
     auto constexpr static isCallableConst = LambdaOrMethodArgTypes<decltype(
         &Callable_::operator())>::isCallableConst;
   };
   template <typename Callable_>
-  struct ArgTypes_<Callable_, CallableType::Method> {
+  struct ArgTypes_<Callable_, CallableKind::Method> {
     using Types = typename LambdaOrMethodArgTypes<Callable_>::Types;
     auto constexpr static isCallableConst =
         LambdaOrMethodArgTypes<Callable_>::isCallableConst;
   };
 
-  template <class Callable_> CallableType constexpr static GetCallableType() {
+  template <class Callable_> CallableKind constexpr static GetCallableKind() {
     if (std ::is_function_v<Callable_>)
-      return CallableType::Function;
+      return CallableKind::Function;
     if (std::is_class_v<Callable_>)
-      return CallableType::Lambda;
-    return CallableType::Method;
+      return CallableKind::Lambda;
+    return CallableKind::Method;
   }
 
   template <class Callable_, size_t... Indices>
@@ -72,7 +72,7 @@ private:
 
   using RawCallable =
       typename std::remove_cv_t<std::remove_reference_t<Callable>>;
-  using ArgTypes = ArgTypes_<RawCallable, GetCallableType<RawCallable>()>;
+  using ArgTypes = ArgTypes_<RawCallable, GetCallableKind<RawCallable>()>;
   using Types = typename ArgTypes::Types;
 
 public:
