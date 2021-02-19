@@ -197,7 +197,7 @@ public:
   SaveRestore &operator=(SaveRestore const &) = delete;
   SaveRestore &operator=(SaveRestore &&) = delete;
 
-  ~SaveRestore() { restoreTo = std::move(originalValue); }
+  ~SaveRestore() noexcept { restoreTo = std::move(originalValue); }
 };
 
 template <typename NoExceptionCallable, typename ExceptionCallable>
