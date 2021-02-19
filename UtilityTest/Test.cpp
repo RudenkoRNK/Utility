@@ -74,6 +74,12 @@ BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
   BOOST_TEST(Utility::CallableTraits<decltype(&AAA::X)>::isCallableConst);
   BOOST_TEST(!Utility::CallableTraits<decltype(&AAA::Y)>::isCallableConst);
   BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isCallableConst);
+
+  BOOST_TEST(Utility::CallableTraits<
+                 std::add_rvalue_reference_t<decltype(lambda1)>>::nArguments ==
+             1);
+  BOOST_TEST(Utility::CallableTraits<
+                 std::remove_cvref_t<decltype(lambda1)>>::nArguments == 1);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_3) {
@@ -433,6 +439,9 @@ BOOST_AUTO_TEST_CASE(sort_test) {
   auto p = Utility::GetSortPermutation(x);
   Utility::Permute(x, p);
   BOOST_TEST(x == sorted);
+
+  Utility::Permute(
+      x, p, [](size_t const &i) noexcept { return i; });
 }
 
 BOOST_AUTO_TEST_CASE(random_test) {
