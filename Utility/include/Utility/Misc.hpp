@@ -202,7 +202,7 @@ public:
 
 template <typename NoExceptionCallable, typename ExceptionCallable>
 class RAII final {
-  static_assert(noexcept(std::declval<ExceptionCallable>()()));
+  static_assert(std::is_nothrow_invocable_v<ExceptionCallable>);
   static_assert(!std::is_reference_v<NoExceptionCallable>);
   NoExceptionCallable callNoException;
   ExceptionCallable callException;
@@ -222,7 +222,7 @@ public:
   RAII &operator=(RAII const &) = delete;
   RAII &operator=(RAII &&) = delete;
 
-  ~RAII() noexcept(noexcept(std::declval<NoExceptionCallable>()())) {
+  ~RAII() noexcept(std::is_nothrow_invocable_v<NoExceptionCallable>) {
     if (!std::uncaught_exceptions())
       callNoException();
     else
