@@ -297,7 +297,7 @@ private:
 };
 
 template <typename Enum, Enum LastElement>
-constexpr Enum &operator++(Enum &element) noexcept {
+Enum &operator++(Enum &element) noexcept {
   auto max = static_cast<int>(LastElement);
   auto e = static_cast<int>(element);
   auto nextE = (e + 1) % (max + 1);
@@ -305,13 +305,13 @@ constexpr Enum &operator++(Enum &element) noexcept {
   return element;
 }
 template <typename Enum, Enum LastElement>
-constexpr Enum operator++(Enum &element, int) noexcept {
+Enum operator++(Enum &element, int) noexcept {
   auto old = element;
   operator++<Enum, LastElement>(element);
   return old;
 }
 template <typename Enum, Enum LastElement>
-constexpr Enum &operator--(Enum &element) noexcept {
+Enum &operator--(Enum &element) noexcept {
   auto max = static_cast<int>(LastElement);
   auto e = static_cast<int>(element);
   auto nextE = (e + max) % (max + 1);
@@ -319,7 +319,7 @@ constexpr Enum &operator--(Enum &element) noexcept {
   return element;
 }
 template <typename Enum, Enum LastElement>
-constexpr Enum operator--(Enum &element, int) noexcept {
+Enum operator--(Enum &element, int) noexcept {
   auto old = element;
   operator--<Enum, LastElement>(element);
   return old;
