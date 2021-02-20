@@ -158,8 +158,26 @@ BOOST_AUTO_TEST_CASE(save_restore) {
   auto i = 123456;
   auto checki = i;
   {
-    auto save = Utility::SaveRestore(i);
+    auto save = Utility::SaveRestore{i};
     i = 100;
+  }
+  BOOST_TEST(checki = i);
+
+  { auto save = Utility::SaveRestore<int>{}; }
+  {
+    auto save = Utility::SaveRestore{i};
+    i = 100;
+    auto b = std::move(save);
+  }
+  BOOST_TEST(checki = i);
+  {
+    auto b = Utility::SaveRestore<int>{};
+    {
+      auto save = Utility::SaveRestore{i};
+      i = 100;
+      b = std::move(save);
+    }
+    BOOST_TEST(i == 100);
   }
   BOOST_TEST(checki = i);
 }

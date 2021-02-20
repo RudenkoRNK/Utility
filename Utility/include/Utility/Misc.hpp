@@ -6,6 +6,7 @@
 #include <chrono>
 #include <exception>
 #include <numeric>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -181,23 +182,37 @@ constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
 template <typename T> class SaveRestore final {
   static_assert(std::is_nothrow_move_assignable_v<T>);
   static_assert(!std::is_reference_v<T>);
-  T &restoreTo;
-  T originalValue;
+  T *restoreTo = nullptr;
+  std::optional<T> originalValue;
 
 public:
-  explicit constexpr SaveRestore(T &value) noexcept(
+  constexpr SaveRestore() noexcept {};
+  explicit SaveRestore(T &value) noexcept(
       std::is_nothrow_copy_constructible_v<T>)
-      : restoreTo(value), originalValue(std::as_const(value)) {}
-  explicit constexpr SaveRestore(T &&value, T &restoreTo) noexcept(
+      : restoreTo{&value}, originalValue{std::as_const(value)} {}
+  explicit SaveRestore(T &&value, T &restoreTo) noexcept(
       std::is_nothrow_move_constructible_v<T>)
-      : restoreTo(restoreTo), originalValue(std::move(value)) {}
+      : restoreTo{&restoreTo}, originalValue{std::move(value)} {}
 
   SaveRestore(SaveRestore const &) = delete;
-  SaveRestore(SaveRestore &&) = delete;
+  SaveRestore(SaveRestore &&other) noexcept { swap(other); }
   SaveRestore &operator=(SaveRestore const &) = delete;
-  SaveRestore &operator=(SaveRestore &&) = delete;
+  SaveRestore &operator=(SaveRestore &&other) noexcept {
+    swap(other);
+    return *this;
+  }
 
-  ~SaveRestore() noexcept { restoreTo = std::move(originalValue); }
+  void swap(SaveRestore &other) noexcept {
+    static_assert(std::is_nothrow_swappable_v<T>);
+    std::swap(restoreTo, other.restoreTo);
+    std::swap(originalValue, other.originalValue);
+  }
+
+  ~SaveRestore() noexcept {
+    if (!restoreTo)
+      return;
+    *restoreTo = std::move(originalValue.value());
+  }
 };
 
 template <typename NoExceptionCallable, typename ExceptionCallable>
