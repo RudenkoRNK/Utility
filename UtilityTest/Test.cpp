@@ -13,22 +13,24 @@
 #include <unordered_set>
 #include <utility>
 
+using namespace Utility;
+
 int foo(int x) { return x; };
 void bar(int x){};
 
 BOOST_AUTO_TEST_CASE(arg_traits_test) {
   auto lambda1 = [](std::string const &) { return 0; };
-  using T = Utility::CallableTraits<decltype(lambda1)>::Type<1>;
+  using T = CallableTraits<decltype(lambda1)>::Type<1>;
   // NOLINTNEXTLINE
   auto lambda2 = [&](T t) { return lambda1(t); };
 
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda1)>::isConst<1>);
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda1)>::isLValueReference<1>);
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isConst<1>);
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda2)>::isLValueReference<1>);
-  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isValue<0>);
-  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isValue<1>);
-  BOOST_TEST(!Utility::CallableTraits<decltype(bar)>::isValue<0>);
+  BOOST_TEST(CallableTraits<decltype(lambda1)>::isConst<1>);
+  BOOST_TEST(CallableTraits<decltype(lambda1)>::isLValueReference<1>);
+  BOOST_TEST(CallableTraits<decltype(lambda2)>::isConst<1>);
+  BOOST_TEST(CallableTraits<decltype(lambda2)>::isLValueReference<1>);
+  BOOST_TEST(CallableTraits<decltype(foo)>::isValue<0>);
+  BOOST_TEST(CallableTraits<decltype(foo)>::isValue<1>);
+  BOOST_TEST(!CallableTraits<decltype(bar)>::isValue<0>);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
@@ -64,42 +66,42 @@ BOOST_AUTO_TEST_CASE(arg_traits_test_2) {
   auto func3 = std::function(lambda3);
   auto func4 = std::function(lambda4);
 
-  BOOST_TEST(!Utility::CallableTraits<decltype(lambda1)>::isCallableConst);
-  BOOST_TEST(!Utility::CallableTraits<decltype(lambda2)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda3)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(lambda4)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(func1)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(func2)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(func3)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(func4)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(&AAA::X)>::isCallableConst);
-  BOOST_TEST(!Utility::CallableTraits<decltype(&AAA::Y)>::isCallableConst);
-  BOOST_TEST(Utility::CallableTraits<decltype(foo)>::isCallableConst);
+  BOOST_TEST(!CallableTraits<decltype(lambda1)>::isCallableConst);
+  BOOST_TEST(!CallableTraits<decltype(lambda2)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(lambda3)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(lambda4)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(func1)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(func2)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(func3)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(func4)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(&AAA::X)>::isCallableConst);
+  BOOST_TEST(!CallableTraits<decltype(&AAA::Y)>::isCallableConst);
+  BOOST_TEST(CallableTraits<decltype(foo)>::isCallableConst);
 
-  BOOST_TEST(Utility::CallableTraits<
+  BOOST_TEST(CallableTraits<
                  std::add_rvalue_reference_t<decltype(lambda1)>>::nArguments ==
              1);
-  BOOST_TEST(Utility::CallableTraits<
-                 std::remove_cvref_t<decltype(lambda1)>>::nArguments == 1);
+  BOOST_TEST(
+      CallableTraits<std::remove_cvref_t<decltype(lambda1)>>::nArguments == 1);
 }
 
 BOOST_AUTO_TEST_CASE(arg_traits_test_3) {
   auto lambda1 = [](std::string const &, int, double, int, char) -> int {
     return 0;
   };
-  using U1 = typename Utility::CallableTraits<decltype(lambda1)>::std_function;
+  using U1 = typename CallableTraits<decltype(lambda1)>::std_function;
   using T1 = std::function<int(std::string const &, int, double, int, char)>;
   auto lambda2 = [](int, double) {};
   using T2 = std::function<void(int, double)>;
-  using U2 = typename Utility::CallableTraits<decltype(lambda2)>::std_function;
+  using U2 = typename CallableTraits<decltype(lambda2)>::std_function;
   BOOST_TEST((std::is_same_v<U1, T1>));
   BOOST_TEST((std::is_same_v<U2, T2>));
 }
 
 BOOST_AUTO_TEST_CASE(type_traits_test) {
-  BOOST_TEST((Utility::isInstanceOf<std::vector, std::vector<int>>));
-  BOOST_TEST((!Utility::isInstanceOf<std::vector, std::unordered_set<int>>));
-  BOOST_TEST((!Utility::isInstanceOf<std::vector, int>));
+  BOOST_TEST((isInstanceOf<std::vector, std::vector<int>>));
+  BOOST_TEST((!isInstanceOf<std::vector, std::unordered_set<int>>));
+  BOOST_TEST((!isInstanceOf<std::vector, int>));
 }
 
 BOOST_AUTO_TEST_CASE(perm_test) {
@@ -107,30 +109,30 @@ BOOST_AUTO_TEST_CASE(perm_test) {
   auto perm2 = std::vector<size_t>{5, 2, 3, 0, 1, 4};
   auto v = std::vector<size_t>(perm.size());
   std::iota(v.begin(), v.end(), 0);
-  Utility::Permute(v, perm);
+  Permute(v, perm);
   BOOST_TEST(v == perm);
   BOOST_TEST(v == perm2);
 }
 
 BOOST_AUTO_TEST_CASE(utility_test) {
   auto x = std::vector<size_t>{0, 1, 2, 3, 4};
-  BOOST_TEST(abs(Utility::Mean(x) - 2) < 0.000001);
-  BOOST_TEST(abs(Utility::RMS(x) - sqrt(6)) < 0.000001);
-  BOOST_TEST(abs(Utility::Variance(x) - 2) < 0.000001);
-  auto fit = Utility::LeastSquares(x);
+  BOOST_TEST(abs(Mean(x) - 2) < 0.000001);
+  BOOST_TEST(abs(RMS(x) - sqrt(6)) < 0.000001);
+  BOOST_TEST(abs(Variance(x) - 2) < 0.000001);
+  auto fit = LeastSquares(x);
   BOOST_TEST(abs(fit.Slope - 1) < 0.000001);
 
   auto N = 10001;
-  auto v = Utility::GetIndices(N);
-  BOOST_TEST(abs(Utility::Mean(v) - (N - 1) / 2) < 0.000001);
-  BOOST_TEST(abs(Utility::RMS(v) - sqrt((N - 1) * (2 * N - 1) / 6)) < 0.0001);
-  BOOST_TEST(abs(Utility::Variance(v) - (N * N - 1) / 12) < 0.000001);
+  auto v = GetIndices(N);
+  BOOST_TEST(abs(Mean(v) - (N - 1) / 2) < 0.000001);
+  BOOST_TEST(abs(RMS(v) - sqrt((N - 1) * (2 * N - 1) / 6)) < 0.0001);
+  BOOST_TEST(abs(Variance(v) - (N * N - 1) / 12) < 0.000001);
 
   auto y = std::vector<std::complex<int>>{0, 1, 2, 3, 4};
-  BOOST_TEST(abs(Utility::Mean(x) - 2) < 0.000001);
-  BOOST_TEST(abs(Utility::RMS(x) - sqrt(6)) < 0.000001);
-  BOOST_TEST(abs(Utility::Variance(x) - 2) < 0.000001);
-  auto fit2 = Utility::LeastSquares(x);
+  BOOST_TEST(abs(Mean(x) - 2) < 0.000001);
+  BOOST_TEST(abs(RMS(x) - sqrt(6)) < 0.000001);
+  BOOST_TEST(abs(Variance(x) - 2) < 0.000001);
+  auto fit2 = LeastSquares(x);
   BOOST_TEST(abs(fit2.Slope - 1) < 0.000001);
 }
 
@@ -138,25 +140,24 @@ BOOST_AUTO_TEST_CASE(save_restore) {
   auto perm = std::vector<size_t>{5, 2, 3, 0, 1, 4};
   auto checkperm = std::vector<size_t>{5, 2, 3, 0, 1, 4};
   {
-    auto save = Utility::SaveRestore(perm);
+    auto save = SaveRestore(perm);
     perm = std::vector<size_t>{};
   }
   BOOST_TEST(checkperm == perm);
 
   {
-    auto save = Utility::SaveRestore(std::move(perm), perm);
+    auto save = SaveRestore(std::move(perm), perm);
     perm = std::vector<size_t>{};
   }
   BOOST_TEST(checkperm == perm);
 
   {
-    auto save =
-        Utility::SaveRestore(std::vector<size_t>{5, 2, 3, 0, 1, 4}, perm);
+    auto save = SaveRestore(std::vector<size_t>{5, 2, 3, 0, 1, 4}, perm);
     perm = std::vector<size_t>{};
   }
   BOOST_TEST(checkperm == perm);
   {
-    auto save = Utility::SaveRestore(std::move(perm));
+    auto save = SaveRestore(std::move(perm));
     perm = std::vector<size_t>{};
   }
   BOOST_TEST(checkperm == perm);
@@ -164,22 +165,22 @@ BOOST_AUTO_TEST_CASE(save_restore) {
   auto i = 123456;
   auto checki = i;
   {
-    auto save = Utility::SaveRestore{i};
+    auto save = SaveRestore{i};
     i = 100;
   }
   BOOST_TEST(checki = i);
 
-  { auto save = Utility::SaveRestore<int>{}; }
+  { auto save = SaveRestore<int>{}; }
   {
-    auto save = Utility::SaveRestore{i};
+    auto save = SaveRestore{i};
     i = 100;
     auto b = std::move(save);
   }
   BOOST_TEST(checki = i);
   {
-    auto b = Utility::SaveRestore<int>{};
+    auto b = SaveRestore<int>{};
     {
-      auto save = Utility::SaveRestore{i};
+      auto save = SaveRestore{i};
       i = 100;
       b = std::move(save);
     }
@@ -210,13 +211,13 @@ BOOST_AUTO_TEST_CASE(exception_guard_test) {
   struct ThrowingStruct {
     int val = 1;
     void ThrowingMethod1() {
-      auto g = Utility::RAII([]() {}, [&]() noexcept { Clear(); });
+      auto g = RAII([]() {}, [&]() noexcept { Clear(); });
       if (val == 10)
         throw std::runtime_error("");
     }
     void Clear() noexcept { val = 0; }
   };
-  auto g1 = Utility::RAII([]() noexcept {});
+  auto g1 = RAII([]() noexcept {});
   auto s = ThrowingStruct{};
   s.ThrowingMethod1();
   BOOST_TEST(s.val == 1);
@@ -246,22 +247,22 @@ BOOST_AUTO_TEST_CASE(benchmark_test) {
   auto f6 = [](AAA &&x, size_t y) {};
   auto f7 = [](AAA &x, size_t y) {};
   auto f8 = [](AAA const &x, size_t y) {};
-  Utility::Benchmark(f1);
-  Utility::Benchmark(f1, size_t{10});
-  Utility::Benchmark(f2, 3);
-  Utility::Benchmark(f2, 3, size_t{10});
-  Utility::Benchmark(f3, 3, 4);
-  Utility::Benchmark(f3, 3, 4, size_t{10});
-  Utility::Benchmark(f4, 3);
-  Utility::Benchmark(f4, 3, size_t{10});
-  Utility::Benchmark(f5, 3, size_t{4});
-  Utility::Benchmark(f5, 3, size_t{4}, size_t{10});
-  Utility::Benchmark(f6, AAA{3}, size_t{4});
-  Utility::Benchmark(f6, AAA{3}, size_t{4}, size_t{10});
-  Utility::Benchmark(f7, aaa, size_t{4});
-  Utility::Benchmark(f7, aaa, size_t{4}, size_t{10});
-  Utility::Benchmark(f8, AAA{3}, size_t{4});
-  Utility::Benchmark(f8, AAA{3}, size_t{4}, size_t{10});
+  Benchmark(f1);
+  Benchmark(f1, size_t{10});
+  Benchmark(f2, 3);
+  Benchmark(f2, 3, size_t{10});
+  Benchmark(f3, 3, 4);
+  Benchmark(f3, 3, 4, size_t{10});
+  Benchmark(f4, 3);
+  Benchmark(f4, 3, size_t{10});
+  Benchmark(f5, 3, size_t{4});
+  Benchmark(f5, 3, size_t{4}, size_t{10});
+  Benchmark(f6, AAA{3}, size_t{4});
+  Benchmark(f6, AAA{3}, size_t{4}, size_t{10});
+  Benchmark(f7, aaa, size_t{4});
+  Benchmark(f7, aaa, size_t{4}, size_t{10});
+  Benchmark(f8, AAA{3}, size_t{4});
+  Benchmark(f8, AAA{3}, size_t{4}, size_t{10});
 }
 
 BOOST_AUTO_TEST_CASE(auto_option_test) {
@@ -345,8 +346,8 @@ BOOST_AUTO_TEST_CASE(auto_option_test) {
 }
 
 BOOST_AUTO_TEST_CASE(exception_handler_test) {
-  auto h = Utility::ExceptionSaver{10};
-  auto i1 = Utility::GetIndices(20);
+  auto h = ExceptionSaver{10};
+  auto i1 = GetIndices(20);
 
   std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
                 h.Wrap([&](size_t i) { throw std::runtime_error{""}; }));
@@ -381,7 +382,7 @@ BOOST_AUTO_TEST_CASE(raii_test) {
     ex = false;
     auto exact = Act(copyCnt, ex);
     auto noexact = Act(copyCnt, noex);
-    auto raii = Utility::RAII(std::move(noexact), std::move(exact));
+    auto raii = RAII(std::move(noexact), std::move(exact));
   }
   BOOST_TEST(noex == true);
   BOOST_TEST(ex == false);
@@ -391,7 +392,7 @@ BOOST_AUTO_TEST_CASE(raii_test) {
     copyCnt = size_t{0};
     noex = false;
     ex = false;
-    auto raii = Utility::RAII(Act(copyCnt, noex), Act(copyCnt, ex));
+    auto raii = RAII(Act(copyCnt, noex), Act(copyCnt, ex));
   }
   BOOST_TEST(noex == true);
   BOOST_TEST(ex == false);
@@ -401,7 +402,7 @@ BOOST_AUTO_TEST_CASE(raii_test) {
     copyCnt = size_t{0};
     noex = false;
     ex = false;
-    auto raii = Utility::RAII(Act(copyCnt, noex));
+    auto raii = RAII(Act(copyCnt, noex));
   }
   BOOST_TEST(noex == true);
   BOOST_TEST(ex == false);
@@ -411,7 +412,7 @@ BOOST_AUTO_TEST_CASE(raii_test) {
     copyCnt = size_t{0};
     noex = false;
     ex = false;
-    auto raii = Utility::RAII(Act(copyCnt, noex), Act(copyCnt, ex));
+    auto raii = RAII(Act(copyCnt, noex), Act(copyCnt, ex));
     throw std::runtime_error("");
   } catch (std::exception &) {
   }
@@ -423,7 +424,7 @@ BOOST_AUTO_TEST_CASE(raii_test) {
     copyCnt = size_t{0};
     noex = false;
     ex = false;
-    auto raii = Utility::RAII(Act(copyCnt, ex));
+    auto raii = RAII(Act(copyCnt, ex));
     throw std::runtime_error("");
   } catch (std::exception &) {
   }
@@ -443,9 +444,9 @@ BOOST_AUTO_TEST_CASE(raii_test) {
   {
     i = 100;
     auto restore = std::function([&]() noexcept { i = checki; });
-    auto g = Utility::RAII<Restore>{};
+    auto g = RAII<Restore>{};
     {
-      auto r = Utility::RAII{Restore{i, checki}};
+      auto r = RAII{Restore{i, checki}};
       r = std::move(g);
     }
     BOOST_TEST(i == 100);
@@ -453,29 +454,26 @@ BOOST_AUTO_TEST_CASE(raii_test) {
   }
   BOOST_TEST(i == checki);
 
-  auto r1 = Utility::RAII{Restore{i, checki}};
-  auto r2 = Utility::RAII{Restore{i, checki}};
+  auto r1 = RAII{Restore{i, checki}};
+  auto r2 = RAII{Restore{i, checki}};
   r1.swap(r2);
 
   {
     i = 100;
-    auto r =
-        Utility::RAII{[&]() noexcept { i = checki; }, Utility::CallAlways{}};
+    auto r = RAII{[&]() noexcept { i = checki; }, CallAlways{}};
   }
   BOOST_TEST(i == checki);
 
   {
     i = 100;
-    auto r = Utility::RAII{[&]() noexcept { i = checki; },
-                           Utility::CallOnException{}};
+    auto r = RAII{[&]() noexcept { i = checki; }, CallOnException{}};
   }
   BOOST_TEST(i == 100);
   i = checki;
 
   try {
     i = 100;
-    auto r = Utility::RAII{[&]() noexcept { i = checki; },
-                           Utility::CallOnException{}};
+    auto r = RAII{[&]() noexcept { i = checki; }, CallOnException{}};
     throw std::exception{};
   } catch (...) {
   }
@@ -483,11 +481,11 @@ BOOST_AUTO_TEST_CASE(raii_test) {
 
   try {
     i = 100;
-    auto r = Utility::RAII{[&]() {
-                             i = checki;
-                             throw std::exception{};
-                           },
-                           [&]() noexcept {}};
+    auto r = RAII{[&]() {
+                    i = checki;
+                    throw std::exception{};
+                  },
+                  [&]() noexcept {}};
   } catch (...) {
   }
   BOOST_TEST(i == checki);
@@ -505,7 +503,7 @@ BOOST_AUTO_TEST_CASE(type_traits_forward_test) {
   auto e = std::string("e");
   auto f = std::string("f");
 
-  using T = Utility::CallableTraits<decltype(F)>;
+  using T = CallableTraits<decltype(F)>;
 
   F(T::Forward<1>(a), T::Forward<2>(b), T::Forward<3>(c), T::Forward<4>(d),
     T::Forward<5>(e), T::Forward<6>(f));
@@ -521,12 +519,11 @@ BOOST_AUTO_TEST_CASE(sort_test) {
   auto x = std::vector<int>{5, 2, 1, 4, 3};
   auto sorted = x;
   std::sort(sorted.begin(), sorted.end());
-  auto p = Utility::GetSortPermutation(x);
-  Utility::Permute(x, p);
+  auto p = GetSortPermutation(x);
+  Permute(x, p);
   BOOST_TEST(x == sorted);
 
-  Utility::Permute(
-      x, p, [](size_t const &i) noexcept { return i; });
+  Permute(x, p, [](size_t const &i) noexcept { return i; });
 }
 
 BOOST_AUTO_TEST_CASE(random_test) {
@@ -535,23 +532,23 @@ BOOST_AUTO_TEST_CASE(random_test) {
   auto d = 0.0;
   auto rd = std::random_device{};
 
-  auto rdtime = Utility::Benchmark([&]() { d += rd(); }, N);
-  auto gentime = Utility::Benchmark(
+  auto rdtime = Benchmark([&]() { d += rd(); }, N);
+  auto gentime = Benchmark(
       [&]() {
         auto gen = std::mt19937{};
         d += gen();
       },
       N);
-  auto staticgentime = Utility::Benchmark(
+  auto staticgentime = Benchmark(
       [&]() {
-        auto &&gen = Utility::GetRandomGenerator();
+        auto &&gen = GetRandomGenerator();
         d += gen();
       },
       N);
   BOOST_TEST((gentime / staticgentime > 10));
   auto v = std::vector<int>{};
   std::generate(std::execution::par_unseq, v.begin(), v.end(), []() {
-    auto &&gen = Utility::GetRandomGenerator();
+    auto &&gen = GetRandomGenerator();
     auto rand = std::uniform_int_distribution<int>(1);
     return rand(gen);
   });
@@ -625,18 +622,18 @@ RAII2(NoExceptionCallable &&)
              std::add_lvalue_reference_t<NoExceptionCallable>>;
 
 template <class Policy>
-concept CallPolicy = std::is_same_v<Policy, Utility::CallAlways> ||
-                     std::is_same_v<Policy, Utility::CallOnException>;
+concept CallPolicy = std::is_same_v<Policy, CallAlways> ||
+                     std::is_same_v<Policy, CallOnException>;
 class RAII3 final {
   std::function<void()> callNormally;
   std::function<void()> callOnException;
 
 public:
   RAII3() noexcept {};
-  template <std::invocable Callable, CallPolicy Policy = Utility::CallAlways>
-  RAII3(Callable &&callable, Policy = Utility::CallAlways{}) {
+  template <std::invocable Callable, CallPolicy Policy = CallAlways>
+  RAII3(Callable &&callable, Policy = CallAlways{}) {
     static_assert(std::is_nothrow_invocable_v<Callable>);
-    if constexpr (std::is_same_v<Policy, Utility::CallAlways>)
+    if constexpr (std::is_same_v<Policy, CallAlways>)
       callNormally = std::forward<Callable>(callable);
     else
       callOnException = std::forward<Callable>(callable);
@@ -699,19 +696,19 @@ BOOST_AUTO_TEST_CASE(raii_bench_test) {
     }
   };
 
-  auto raii = [s = S{}]() noexcept { Utility::RAII(S{s}); };
+  auto raii = [s = S{}]() noexcept { RAII(S{s}); };
   auto raii2 = [s = S{}]() noexcept { RAII2(S{s}); };
   auto raii3 = [s = S{}]() noexcept { RAII3(S{s}); };
   auto s = S{};
   auto ol = std::optional(s);
   auto f = std::function(s);
 
-  auto lt = Utility::Benchmark(s, 1000);
-  auto ft = Utility::Benchmark(f, 1000);
-  auto olt = Utility::Benchmark(ol.value(), 1000);
-  auto rt = Utility::Benchmark(raii, 1000);
-  auto rt2 = Utility::Benchmark(raii2, 1000);
-  auto rt3 = Utility::Benchmark(raii3, 1000);
+  auto lt = Benchmark(s, 1000);
+  auto ft = Benchmark(f, 1000);
+  auto olt = Benchmark(ol.value(), 1000);
+  auto rt = Benchmark(raii, 1000);
+  auto rt2 = Benchmark(raii2, 1000);
+  auto rt3 = Benchmark(raii3, 1000);
 
   auto x = static_cast<double>(rt.count());
   auto y = static_cast<double>(rt2.count());
@@ -737,7 +734,7 @@ template <typename T> class SaveRestore2 final {
     T *restoreTo = nullptr;
     void operator()() noexcept { *restoreTo = std::move(originalValue); }
   };
-  Utility::RAII<Restore> restore;
+  RAII<Restore> restore;
 
 public:
   constexpr SaveRestore2() noexcept {};
@@ -759,7 +756,7 @@ BOOST_AUTO_TEST_CASE(saverestore_bench_test) {
 
   auto sr = [&]() {
     {
-      auto s = Utility::SaveRestore(v);
+      auto s = SaveRestore(v);
       v = 0;
       hash += v;
     }
@@ -773,8 +770,8 @@ BOOST_AUTO_TEST_CASE(saverestore_bench_test) {
     }
     hash += v;
   };
-  auto srt = Utility::Benchmark(sr, 1000);
-  auto srt2 = Utility::Benchmark(sr2, 1000);
+  auto srt = Benchmark(sr, 1000);
+  auto srt2 = Benchmark(sr2, 1000);
   BOOST_TEST(v == vcheck);
 
   auto x = static_cast<double>(srt.count());
