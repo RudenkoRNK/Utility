@@ -31,7 +31,18 @@ private:
     auto constexpr static isCallableConst = true;
   };
   template <typename CallableAddress, typename Result, typename... Args>
+  struct LambdaOrMethodArgTypes<Result (CallableAddress::*)(Args...)
+                                    const noexcept> {
+    using Types = typename std::tuple<Result, Args...>;
+    auto constexpr static isCallableConst = true;
+  };
+  template <typename CallableAddress, typename Result, typename... Args>
   struct LambdaOrMethodArgTypes<Result (CallableAddress::*)(Args...)> {
+    using Types = typename std::tuple<Result, Args...>;
+    auto constexpr static isCallableConst = false;
+  };
+  template <typename CallableAddress, typename Result, typename... Args>
+  struct LambdaOrMethodArgTypes<Result (CallableAddress::*)(Args...) noexcept> {
     using Types = typename std::tuple<Result, Args...>;
     auto constexpr static isCallableConst = false;
   };
