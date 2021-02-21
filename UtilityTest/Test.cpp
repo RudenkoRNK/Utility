@@ -359,6 +359,38 @@ BOOST_AUTO_TEST_CASE(exception_handler_test) {
     }
   }
   h.Rethrow();
+
+  auto h1 = ExceptionSaver{10};
+  auto h2 = ExceptionSaver{20};
+  auto i2 = GetIndices(50);
+
+  std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
+                h1.Wrap([&](size_t i) { throw std::exception{}; }));
+  std::for_each(std::execution::par_unseq, i2.begin(), i2.end(),
+                h2.Wrap([&](size_t i) { throw std::exception{}; }));
+  h1.swap(h2);
+  BOOST_TEST(h1.NSavedExceptions() == 20);
+  BOOST_TEST(h1.NCapturedExceptions() == 50);
+  BOOST_TEST(h2.NSavedExceptions() == 10);
+  BOOST_TEST(h2.NCapturedExceptions() == 20);
+  h1 = std::move(h2);
+  BOOST_TEST(h2.NSavedExceptions() == 20);
+  BOOST_TEST(h2.NCapturedExceptions() == 50);
+  BOOST_TEST(h1.NSavedExceptions() == 10);
+  BOOST_TEST(h1.NCapturedExceptions() == 20);
+
+  auto h3 = ExceptionSaver{0};
+  std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
+                h3.Wrap([&](size_t i) { throw std::exception{}; }));
+  h3.Rethrow();
+  auto h4 = std::move(h1);
+  h1.Rethrow();
+  std::for_each(std::execution::par_unseq, i1.begin(), i1.end(),
+                h1.Wrap([&](size_t i) { throw std::exception{}; }));
+  h1.Rethrow();
+  BOOST_TEST(h1.NCapturedExceptions() == 20);
+  h2.Drop();
+  h4.Drop();
 }
 
 BOOST_AUTO_TEST_CASE(raii_test) {

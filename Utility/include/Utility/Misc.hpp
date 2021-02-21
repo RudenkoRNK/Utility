@@ -286,16 +286,32 @@ private:
 
 // Save exceptions in multithreaded environment
 class ExceptionSaver final {
-  std::atomic<size_t> nCapturedExceptions;
-  std::atomic<size_t> nSavedExceptions;
+  std::atomic<size_t> nCapturedExceptions = 0;
+  std::atomic<size_t> nSavedExceptions = 0;
   std::vector<std::exception_ptr> exceptions;
-  size_t maxExceptions;
 
 public:
-  ExceptionSaver(size_t maxExceptions = 1) : maxExceptions(maxExceptions) {
-    exceptions.resize(maxExceptions);
+  ExceptionSaver(size_t maxExceptions = 1) { exceptions.resize(maxExceptions); }
+  ExceptionSaver(ExceptionSaver const &) = delete;
+  ExceptionSaver(ExceptionSaver &&other) noexcept { swap(other); }
+  ExceptionSaver &operator=(ExceptionSaver const &) = delete;
+  ExceptionSaver &operator=(ExceptionSaver &&other) noexcept {
+    swap(other);
+    return *this;
+  }
+  ~ExceptionSaver() { Rethrow(); }
+
+  size_t NCapturedExceptions() const noexcept { return nCapturedExceptions; }
+  size_t NSavedExceptions() const noexcept { return nSavedExceptions; }
+
+  void swap(ExceptionSaver &other) noexcept {
+    nCapturedExceptions =
+        other.nCapturedExceptions.exchange(nCapturedExceptions);
+    nSavedExceptions = other.nSavedExceptions.exchange(nSavedExceptions);
+    std::swap(exceptions, other.exceptions);
   }
 
+  // Wraps callable in a thread-save wrapper
   template <typename Callable> auto Wrap(Callable &&callable) {
     using ReturnType = typename CallableTraits<Callable>::template Type<0>;
     static_assert(std::is_void_v<ReturnType> ||
@@ -306,21 +322,20 @@ public:
         std::make_index_sequence<CallableTraits<Callable>::nArguments>{});
   }
 
-  ExceptionSaver(ExceptionSaver const &) = delete;
-  ExceptionSaver(ExceptionSaver &&) = delete;
-  ExceptionSaver &operator=(ExceptionSaver const &) = delete;
-  ExceptionSaver &operator=(ExceptionSaver &&) = delete;
-
-  // Not thread-safe
   void Rethrow() {
     if (!nSavedExceptions)
       return;
-    auto e = exceptions[--nSavedExceptions];
-    exceptions[nSavedExceptions] = std::exception_ptr{};
+    auto e = std::exception_ptr{};
+    std::swap(e, exceptions[--nSavedExceptions]);
     std::rethrow_exception(e);
   }
-  size_t NCapturedExceptions() const noexcept { return nCapturedExceptions; }
-  size_t NSavedExceptions() const noexcept { return nSavedExceptions; }
+  void Drop() noexcept {
+    std::fill(exceptions.begin(), exceptions.end(), std::exception_ptr{});
+    nSavedExceptions = 0;
+  }
+  void SetMaxExceptions(size_t maxExceptions) {
+    exceptions.resize(maxExceptions);
+  }
 
 private:
   template <class Callable, size_t... Indices>
@@ -335,7 +350,7 @@ private:
                 args)...);
       } catch (std::exception &) {
         size_t index = nCapturedExceptions++;
-        if (index < maxExceptions) {
+        if (index < exceptions.size()) {
           ++nSavedExceptions;
           exceptions[index] = std::current_exception();
         }
