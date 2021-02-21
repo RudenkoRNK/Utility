@@ -323,6 +323,10 @@ public:
   }
 
   void Rethrow() {
+#ifndef NDEBUG
+    for (auto i = size_t{0}, e = exceptions.size(); i != e; ++i)
+      assert(static_cast<bool>(exceptions[i]) == (i < nSavedExceptions));
+#endif // !NDEBUG
     if (!nSavedExceptions)
       return;
     auto e = std::exception_ptr{};
@@ -330,8 +334,13 @@ public:
     std::rethrow_exception(e);
   }
   void Drop() noexcept {
-    std::fill(exceptions.begin(), exceptions.end(), std::exception_ptr{});
+    std::fill_n(exceptions.begin(), nSavedExceptions.load(),
+                std::exception_ptr{});
     nSavedExceptions = 0;
+#ifndef NDEBUG
+    for (auto &&ptr : exceptions)
+      assert(!ptr);
+#endif // !NDEBUG
   }
   void SetMaxExceptions(size_t maxExceptions) {
     exceptions.resize(maxExceptions);
