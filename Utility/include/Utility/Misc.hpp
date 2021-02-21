@@ -183,17 +183,20 @@ constexpr AutoOption operator!=(AutoOption x, AutoOption y) noexcept {
 template <typename T> class SaveRestore final {
   static_assert(std::is_nothrow_move_assignable_v<T>);
   static_assert(!std::is_reference_v<T>);
-  T *restoreTo = nullptr;
   std::optional<T> originalValue;
+  T *restoreTo = nullptr;
 
 public:
   constexpr SaveRestore() noexcept {};
   explicit SaveRestore(T &value) noexcept(
       std::is_nothrow_copy_constructible_v<T>)
-      : restoreTo{&value}, originalValue{std::as_const(value)} {}
+      : originalValue{std::as_const(value)}, restoreTo{&value} {}
+  explicit SaveRestore(T &&value) noexcept(
+      std::is_nothrow_move_constructible_v<T>)
+      : originalValue{std::move(value)}, restoreTo{&value} {}
   explicit SaveRestore(T &&value, T &restoreTo) noexcept(
       std::is_nothrow_move_constructible_v<T>)
-      : restoreTo{&restoreTo}, originalValue{std::move(value)} {}
+      : originalValue{std::move(value)}, restoreTo{&restoreTo} {}
 
   SaveRestore(SaveRestore const &) = delete;
   SaveRestore(SaveRestore &&other) noexcept { swap(other); }

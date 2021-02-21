@@ -155,6 +155,11 @@ BOOST_AUTO_TEST_CASE(save_restore) {
     perm = std::vector<size_t>{};
   }
   BOOST_TEST(checkperm == perm);
+  {
+    auto save = Utility::SaveRestore(std::move(perm));
+    perm = std::vector<size_t>{};
+  }
+  BOOST_TEST(checkperm == perm);
 
   auto i = 123456;
   auto checki = i;
@@ -721,5 +726,65 @@ BOOST_AUTO_TEST_CASE(raii_bench_test) {
     std::cout << "RAII test: " << rt.count() << std::endl;
     std::cout << "RAII2 test: " << rt2.count() << std::endl;
     std::cout << "RAII3 test: " << rt3.count() << std::endl;
+  }
+}
+
+template <typename T> class SaveRestore2 final {
+  static_assert(std::is_nothrow_move_assignable_v<T>);
+  static_assert(!std::is_reference_v<T>);
+  struct Restore {
+    T originalValue;
+    T *restoreTo = nullptr;
+    void operator()() noexcept { *restoreTo = std::move(originalValue); }
+  };
+  Utility::RAII<Restore> restore;
+
+public:
+  constexpr SaveRestore2() noexcept {};
+  explicit SaveRestore2(T &value) noexcept(
+      std::is_nothrow_copy_constructible_v<T>)
+      : restore{{T{std::as_const(value)}, &value}} {}
+  explicit SaveRestore2(T &&value) noexcept(
+      std::is_nothrow_move_constructible_v<T>)
+      : restore{{std::move(value), &value}} {}
+  explicit SaveRestore2(T &&value, T &restoreTo) noexcept(
+      std::is_nothrow_move_constructible_v<T>)
+      : restore{{std::move(value), &restoreTo}} {}
+};
+
+BOOST_AUTO_TEST_CASE(saverestore_bench_test) {
+  auto v = 1000;
+  auto vcheck = v;
+  auto hash = size_t{0};
+
+  auto sr = [&]() {
+    {
+      auto s = Utility::SaveRestore(v);
+      v = 0;
+      hash += v;
+    }
+    hash += v;
+  };
+  auto sr2 = [&]() {
+    {
+      auto s = SaveRestore2(v);
+      v = 0;
+      hash += v;
+    }
+    hash += v;
+  };
+  auto srt = Utility::Benchmark(sr, 1000);
+  auto srt2 = Utility::Benchmark(sr2, 1000);
+  BOOST_TEST(v == vcheck);
+
+  auto x = static_cast<double>(srt.count());
+  auto y = static_cast<double>(srt2.count());
+  auto overhead = (x - y) / y;
+  BOOST_TEST(overhead < 1);
+
+  if (hash == 0) {
+    std::cout << "Hash:   " << hash << std::endl;
+    std::cout << "SaveRestore test:  " << srt.count() << std::endl;
+    std::cout << "SaveRestore2 test: " << srt2.count() << std::endl;
   }
 }
