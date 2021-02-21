@@ -92,7 +92,7 @@ template <typename FG, typename... Args>
 std::chrono::nanoseconds _Benchmark(FG &&Func, size_t nRuns, Args &&... args) {
   static_assert(CallableTraits<FG>::nArguments == sizeof...(args));
   auto start = std::chrono::steady_clock::now();
-  for (auto i = size_t{0}; i < nRuns; ++i)
+  for (auto i = 0; i != nRuns; ++i)
     Func(std::forward<Args>(args)...);
   auto end = std::chrono::steady_clock::now();
   return (end - start) / nRuns;
