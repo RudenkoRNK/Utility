@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <concepts>
 #include <exception>
 #include <numeric>
 #include <optional>
@@ -215,39 +216,70 @@ public:
   }
 };
 
-template <typename NoExceptionCallable, typename ExceptionCallable>
+struct CallAlways final {};
+struct CallOnException final {};
+
+template <std::invocable Callable,
+          std::invocable CallableOnException = Callable>
 class RAII final {
-  static_assert(std::is_nothrow_invocable_v<ExceptionCallable>);
-  static_assert(!std::is_reference_v<NoExceptionCallable>);
-  NoExceptionCallable callNoException;
-  ExceptionCallable callException;
+  std::optional<Callable> callNormally;
+  std::optional<CallableOnException> callOnException;
 
 public:
-  RAII(NoExceptionCallable &&callAlways)
-      : callNoException(std::move(callAlways)), callException(callNoException) {
-    static_assert(std::is_reference_v<ExceptionCallable>);
+  RAII() noexcept {};
+  RAII(Callable &&callable) : callNormally(std::move(callable)) {
+    static_assert(std::is_nothrow_invocable_v<Callable>);
   }
-
-  RAII(NoExceptionCallable &&callNoException, ExceptionCallable &&callException)
-      : callNoException(std::move(callNoException)),
-        callException(std::move(callException)) {}
+  RAII(Callable &&callable, CallAlways) : callNormally(std::move(callable)) {
+    static_assert(std::is_nothrow_invocable_v<Callable>);
+  }
+  RAII(Callable &&callable, CallOnException)
+      : callOnException(std::move(callable)) {
+    static_assert(std::is_nothrow_invocable_v<Callable>);
+  }
+  RAII(Callable &&callNormally, CallableOnException &&callOnException)
+      : callNormally(std::forward<Callable>(callNormally)),
+        callOnException(std::forward<CallableOnException>(callOnException)) {
+    static_assert(std::is_nothrow_invocable_v<CallableOnException>);
+  }
 
   RAII(RAII const &) = delete;
-  RAII(RAII &&) = delete;
+  RAII(RAII &&other) noexcept { swap(other); }
   RAII &operator=(RAII const &) = delete;
-  RAII &operator=(RAII &&) = delete;
+  RAII &operator=(RAII &&other) noexcept {
+    swap(other);
+    return *this;
+  }
 
-  ~RAII() noexcept(std::is_nothrow_invocable_v<NoExceptionCallable>) {
+  void swap(RAII &other) noexcept {
+    static_assert(std::is_nothrow_swappable_v<Callable>);
+    static_assert(std::is_nothrow_swappable_v<CallableOnException>);
+    callNormally.swap(other.callNormally);
+    callOnException.swap(other.callOnException);
+  }
+
+  ~RAII() noexcept(std::is_nothrow_invocable_v<Callable>) {
     if (!std::uncaught_exceptions())
-      callNoException();
+      CallNormally();
     else
-      callException();
+      CallOnException();
+  }
+
+private:
+  void CallNormally() noexcept(std::is_nothrow_invocable_v<Callable>) {
+    if (callNormally)
+      callNormally.value()();
+  }
+  void CallOnException() noexcept {
+    if (callOnException) {
+      assert(std::is_nothrow_invocable_v<CallableOnException>);
+      callOnException.value()();
+    } else if (callNormally) {
+      assert(std::is_nothrow_invocable_v<Callable>);
+      callNormally.value()();
+    }
   }
 };
-template <typename NoExceptionCallable>
-RAII(NoExceptionCallable &&)
-    ->RAII<std::remove_reference_t<NoExceptionCallable>,
-           std::add_lvalue_reference_t<NoExceptionCallable>>;
 
 // Save exceptions in multithreaded environment
 class ExceptionSaver final {

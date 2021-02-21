@@ -3,6 +3,7 @@
 #include "Utility/Math.hpp"
 #include "Utility/Misc.hpp"
 #include "Utility/TypeTraits.hpp"
+#include <array>
 #include <boost/test/included/unit_test.hpp>
 #include <complex>
 #include <execution>
@@ -424,6 +425,67 @@ BOOST_AUTO_TEST_CASE(raii_test) {
   BOOST_TEST(noex == false);
   BOOST_TEST(ex == true);
   BOOST_TEST(copyCnt == 0);
+
+  struct Restore {
+    int *restoreTo;
+    int value;
+    Restore(int &restoreTo, int value) : restoreTo{&restoreTo}, value{value} {}
+    void operator()() noexcept { *restoreTo = value; }
+  };
+
+  auto i = 123456;
+  auto checki = i;
+  {
+    i = 100;
+    auto restore = std::function([&]() noexcept { i = checki; });
+    auto g = Utility::RAII<Restore>{};
+    {
+      auto r = Utility::RAII{Restore{i, checki}};
+      r = std::move(g);
+    }
+    BOOST_TEST(i == 100);
+    auto x = std::move(g);
+  }
+  BOOST_TEST(i == checki);
+
+  auto r1 = Utility::RAII{Restore{i, checki}};
+  auto r2 = Utility::RAII{Restore{i, checki}};
+  r1.swap(r2);
+
+  {
+    i = 100;
+    auto r =
+        Utility::RAII{[&]() noexcept { i = checki; }, Utility::CallAlways{}};
+  }
+  BOOST_TEST(i == checki);
+
+  {
+    i = 100;
+    auto r = Utility::RAII{[&]() noexcept { i = checki; },
+                           Utility::CallOnException{}};
+  }
+  BOOST_TEST(i == 100);
+  i = checki;
+
+  try {
+    i = 100;
+    auto r = Utility::RAII{[&]() noexcept { i = checki; },
+                           Utility::CallOnException{}};
+    throw std::exception{};
+  } catch (...) {
+  }
+  BOOST_TEST(i == checki);
+
+  try {
+    i = 100;
+    auto r = Utility::RAII{[&]() {
+                             i = checki;
+                             throw std::exception{};
+                           },
+                           [&]() noexcept {}};
+  } catch (...) {
+  }
+  BOOST_TEST(i == checki);
 }
 
 BOOST_AUTO_TEST_CASE(type_traits_forward_test) {
@@ -520,4 +582,144 @@ BOOST_AUTO_TEST_CASE(enum_iterator_test) {
        operator--<SomeEnum, SomeEnum::F>(h) != SomeEnum::F;)
     ++cnt;
   BOOST_TEST(cnt == static_cast<int>(SomeEnum::F));
+}
+
+template <typename NoExceptionCallable, typename ExceptionCallable>
+class RAII2 final {
+  static_assert(std::is_nothrow_invocable_v<ExceptionCallable>);
+  static_assert(!std::is_reference_v<NoExceptionCallable>);
+  NoExceptionCallable callNoException;
+  ExceptionCallable callException;
+
+public:
+  RAII2(NoExceptionCallable &&callAlways)
+      : callNoException(std::move(callAlways)), callException(callNoException) {
+    static_assert(std::is_reference_v<ExceptionCallable>);
+  }
+
+  RAII2(NoExceptionCallable &&callNoException,
+        ExceptionCallable &&callException)
+      : callNoException(std::move(callNoException)),
+        callException(std::move(callException)) {}
+
+  RAII2(RAII2 const &) = delete;
+  RAII2(RAII2 &&) = delete;
+  RAII2 &operator=(RAII2 const &) = delete;
+  RAII2 &operator=(RAII2 &&) = delete;
+
+  ~RAII2() noexcept(std::is_nothrow_invocable_v<NoExceptionCallable>) {
+    if (!std::uncaught_exceptions())
+      callNoException();
+    else
+      callException();
+  }
+};
+template <typename NoExceptionCallable>
+RAII2(NoExceptionCallable &&)
+    -> RAII2<std::remove_reference_t<NoExceptionCallable>,
+             std::add_lvalue_reference_t<NoExceptionCallable>>;
+
+template <class Policy>
+concept CallPolicy = std::is_same_v<Policy, Utility::CallAlways> ||
+                     std::is_same_v<Policy, Utility::CallOnException>;
+class RAII3 final {
+  std::function<void()> callNormally;
+  std::function<void()> callOnException;
+
+public:
+  RAII3() noexcept {};
+  template <std::invocable Callable, CallPolicy Policy = Utility::CallAlways>
+  RAII3(Callable &&callable, Policy = Utility::CallAlways{}) {
+    static_assert(std::is_nothrow_invocable_v<Callable>);
+    if constexpr (std::is_same_v<Policy, Utility::CallAlways>)
+      callNormally = std::forward<Callable>(callable);
+    else
+      callOnException = std::forward<Callable>(callable);
+  }
+
+  template <std::invocable Callable, std::invocable CallableOnException>
+  RAII3(Callable &&callNormally, CallableOnException &&callOnException)
+      : callNormally(std::forward<Callable>(callNormally)),
+        callOnException(std::forward<CallableOnException>(callOnException)) {
+    static_assert(std::is_nothrow_invocable_v<CallableOnException>);
+  }
+
+  RAII3(RAII3 const &) = delete;
+  RAII3(RAII3 &&other) noexcept { swap(other); }
+  RAII3 &operator=(RAII3 const &) = delete;
+  RAII3 &operator=(RAII3 &&other) noexcept {
+    swap(other);
+    return *this;
+  }
+
+  void swap(RAII3 &other) noexcept {
+    std::swap(callNormally, other.callNormally);
+    std::swap(callOnException, other.callOnException);
+  }
+
+  ~RAII3() {
+    if (!std::uncaught_exceptions())
+      CallNormally();
+    else
+      CallOnException();
+  }
+
+private:
+  void CallNormally() {
+    if (callNormally)
+      callNormally();
+  }
+  void CallOnException() noexcept {
+    if (callOnException)
+      callOnException();
+    else if (callNormally)
+      callNormally();
+  }
+};
+
+BOOST_AUTO_TEST_CASE(raii_bench_test) {
+  constexpr static auto n = 2;
+  struct S {
+    std::array<int, n> v;
+    int hash = 0;
+    S() { std::iota(v.begin(), v.end(), 0); }
+    int operator()() noexcept {
+      auto res = 0;
+      std::transform(v.begin(), v.end(), v.begin(),
+                     [](int i) { return (i + 1) % n; });
+      for (auto i = 0; i != n; ++i)
+        res = v[res];
+      hash += res;
+      return hash;
+    }
+  };
+
+  auto raii = [s = S{}]() noexcept { Utility::RAII(S{s}); };
+  auto raii2 = [s = S{}]() noexcept { RAII2(S{s}); };
+  auto raii3 = [s = S{}]() noexcept { RAII3(S{s}); };
+  auto s = S{};
+  auto ol = std::optional(s);
+  auto f = std::function(s);
+
+  auto lt = Utility::Benchmark(s, 1000);
+  auto ft = Utility::Benchmark(f, 1000);
+  auto olt = Utility::Benchmark(ol.value(), 1000);
+  auto rt = Utility::Benchmark(raii, 1000);
+  auto rt2 = Utility::Benchmark(raii2, 1000);
+  auto rt3 = Utility::Benchmark(raii3, 1000);
+
+  auto x = static_cast<double>(rt.count());
+  auto y = static_cast<double>(rt2.count());
+  auto overhead = (x - y) / y;
+  BOOST_TEST(overhead < 1);
+
+  if (s()) {
+    std::cout << "Hash:   " << s() << ol.value().hash << f() << std::endl;
+    std::cout << "Lambda test:   " << lt.count() << std::endl;
+    std::cout << "Optional Lambda test: " << olt.count() << std::endl;
+    std::cout << "Function test: " << ft.count() << std::endl;
+    std::cout << "RAII test: " << rt.count() << std::endl;
+    std::cout << "RAII2 test: " << rt2.count() << std::endl;
+    std::cout << "RAII3 test: " << rt3.count() << std::endl;
+  }
 }
