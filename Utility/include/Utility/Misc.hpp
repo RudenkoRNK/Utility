@@ -201,7 +201,7 @@ public:
   SaveRestore(SaveRestore const &) = delete;
   SaveRestore(SaveRestore &&other) noexcept { swap(other); }
   SaveRestore &operator=(SaveRestore const &) = delete;
-  SaveRestore &operator=(SaveRestore &&other) noexcept {
+  SaveRestore &operator=(SaveRestore &&other) &noexcept {
     swap(other);
     return *this;
   }
@@ -249,7 +249,7 @@ public:
   RAII(RAII const &) = delete;
   RAII(RAII &&other) noexcept { swap(other); }
   RAII &operator=(RAII const &) = delete;
-  RAII &operator=(RAII &&other) noexcept {
+  RAII &operator=(RAII &&other) &noexcept {
     swap(other);
     return *this;
   }
@@ -295,7 +295,7 @@ public:
   ExceptionSaver(ExceptionSaver const &) = delete;
   ExceptionSaver(ExceptionSaver &&other) noexcept { swap(other); }
   ExceptionSaver &operator=(ExceptionSaver const &) = delete;
-  ExceptionSaver &operator=(ExceptionSaver &&other) noexcept {
+  ExceptionSaver &operator=(ExceptionSaver &&other) &noexcept {
     swap(other);
     return *this;
   }
