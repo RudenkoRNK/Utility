@@ -230,10 +230,8 @@ class RAII final {
 
 public:
   RAII() noexcept {};
-  RAII(Callable &&callable) : callNormally(std::move(callable)) {
-    static_assert(std::is_nothrow_invocable_v<Callable>);
-  }
-  RAII(Callable &&callable, CallAlways) : callNormally(std::move(callable)) {
+  RAII(Callable &&callable, CallAlways = CallAlways{})
+      : callNormally(std::move(callable)) {
     static_assert(std::is_nothrow_invocable_v<Callable>);
   }
   RAII(Callable &&callable, CallOnException)
@@ -351,13 +349,13 @@ private:
   auto _Wrap(Callable &&callable, std::integer_sequence<size_t, Indices...>) {
     using ReturnType = typename CallableTraits<Callable>::template Type<0>;
     return [&](typename CallableTraits<Callable>::template ArgType<
-               Indices>... args) {
+               Indices>... args) noexcept {
       try {
         return callable(
             std::forward<
                 typename CallableTraits<Callable>::template ArgType<Indices>>(
                 args)...);
-      } catch (std::exception &) {
+      } catch (...) {
         size_t index = nCapturedExceptions++;
         if (index < exceptions.size()) {
           ++nSavedExceptions;
