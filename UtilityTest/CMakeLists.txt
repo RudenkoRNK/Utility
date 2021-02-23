@@ -1,8 +1,8 @@
 add_executable(UtilityTest)
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost REQUIRED)
 
-target_link_libraries(UtilityTest PRIVATE Boost::unit_test_framework)
+target_link_libraries(UtilityTest PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(UtilityTest PRIVATE Utility)
 
 target_include_directories(UtilityTest PRIVATE ${Boost_INCLUDE_DIRS})
