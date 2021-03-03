@@ -1,8 +1,8 @@
 #define BOOST_TEST_MODULE Test
 
-#include "Utility/Math.hpp"
-#include "Utility/Misc.hpp"
-#include "Utility/TypeTraits.hpp"
+#include "utility/math.hpp"
+#include "utility/misc.hpp"
+#include "utility/type_traits.hpp"
 #include <array>
 #include <boost/test/included/unit_test.hpp>
 #include <complex>

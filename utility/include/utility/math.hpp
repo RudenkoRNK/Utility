@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utility/TypeTraits.hpp"
+#include "utility/type_traits.hpp"
 #include <algorithm>
 #include <cassert>
 #include <complex>
