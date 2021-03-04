@@ -66,7 +66,8 @@ void Permute(Vector &v, VectorIndexers &perm, IndexFunction &&Index) {
 }
 
 template <typename Vector> void Permute(Vector &v, std::vector<size_t> &perm) {
-  Permute(v, perm, std::identity{});
+  Permute(
+      v, perm, [](auto &&i) noexcept { return i; });
 }
 
 template <typename Vector, typename Comparator>
